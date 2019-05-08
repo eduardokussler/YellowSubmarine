@@ -3,10 +3,30 @@
 #include <conio2.h>
 #include <windows.h>
 
-#define LINHA1 5
-#define LINHA2 20
-#define COLUNA1 10
-#define COLUNA2 70
+#define NUMOBSTACULOS 10
+#define LINHA1 1// era 1
+#define LINHA2 25// era 20
+#define COLUNA1 1// era 10
+#define COLUNA2 80// era 70
+// to fingindo q sei o q to fazendo
+// parece que já tem o tipo COORDENADA na conio
+typedef struct submarino {
+    COORD posicao;
+    int orientacao;// 1 direita 0 esquerda?
+    int vidas;
+    int oxigenio;
+    int pontuacao;
+    int mergulhadores;
+    // n botei a cor
+} SUBMARINO;
+
+typedef struct obstaculo {
+    int tipo;//1: submarino 2: mergulhador
+    COORD posicao;
+    int orientacao;// 1 direita 0 esquerda?
+    // n botei a cor
+} OBSTACULO;
+
 
 void missel_atualiza(int x,int y) {
     putchxy(x,y,'>');
@@ -144,14 +164,20 @@ void imprime_moldura() {
             putchxy(COLUNA1,y,'|');
             putchxy(COLUNA2,y,'|');
     }
-    printf("\n");
+    //printf("\n");
 
 
 }
 
 int main() {
+    OBSTACULO  obstaculos [NUMOBSTACULOS];
+    // o oxigenio depende do sleep entre os lacos
+    // tem 30 segundos de oxigenio mas se o cada laço demora
+    // meio segundo seria botar 60 de oxigenio e decrementar
+    // 1 por laco
+    SUBMARINO sub = {{40,3},1,3,30,0,0};
     //char leitura ;
    imprime_moldura();
-   le_tecla_imprime2();
+   //le_tecla_imprime2();
 
 }
