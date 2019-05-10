@@ -12,9 +12,12 @@
 #define COMPRIMENTOSUBMARINO 11
 #define DIREITA 1
 #define ESQUERDA 0
+#define METADEX COLUNA2 / 2
+#define METADEY LINHA2 / 2
 
-
-
+void menu();
+void creditos();
+void proMeio();
 // to fingindo q sei o q to fazendo
 // parece que já tem o tipo COORDENADA na conio
 typedef struct submarino {
@@ -297,7 +300,7 @@ void imprime_moldura() {
 //o parametro linha serve para deslocar o cursor
 // para baixo pelo numero de vezes que for passado
 void proMeio(int linha){
-    gotoxy(COLUNA2/ 2, LINHA2 / 2 + linha);
+    gotoxy(COLUNA2/ 2, (LINHA2 / 2) + linha);
 }
 //funcao menu: desenha o menu e chama a função de acordo com o
 //numero selecionado
@@ -344,18 +347,12 @@ void creditos(){
     char voltar;
     clrscr();
     imprime_moldura();
-    proMeio(0);//ir para o meio da tela
-    printf("FEITO POR:");
-    proMeio(1);//no meio mas 1 linha abaixo
-    printf("Eduardo Eugenio Kussler");
-    proMeio(2);//no meio da moldura mas 2 linhas abaixo
-    printf("E ");
-    proMeio(3);//no meio da moldura mas 3 linhas abaixo
-    printf("Gabriel Couto");
-    proMeio(6);
-    printf("Pressione ESC para ");
-    proMeio(7);
-    printf("voltar ao menu principal");
+    cputsxy(METADEX, METADEY, "FEITO POR:");//ir para o meio da tela
+    cputsxy(METADEX, METADEY + 1, "Eduardo Eugenio Kussler");
+    cputsxy(METADEX, METADEY + 2, "E");
+    cputsxy(METADEX, METADEY + 3, "Gabriel Couto");
+    cputsxy(METADEX, METADEY + 6, "Pressione ESC para ");
+    cputsxy(METADEX, METADEY + 7, "voltar ao menu principal");
     do{
         voltar = getch();
     }while(voltar != 27);
