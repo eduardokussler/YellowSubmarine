@@ -308,16 +308,11 @@ void menu(){
     char resp;
     clrscr();
     imprime_moldura();
-    proMeio(0);
-    printf("[1]Novo Jogo");
-    proMeio(1);
-    printf("[2]Carregar Jogo");
-    proMeio(2);
-    printf("[3]Recordes");
-    proMeio(3);
-    printf("[4]Creditos");
-    proMeio(4);
-    printf("[5]Sair");
+    cputsxy(METADEX, METADEY, "[1]Novo Jogo");
+    cputsxy(METADEX, METADEY + 1, "[2]Carregar Jogo");
+    cputsxy(METADEX, METADEY + 2, "[3]Recordes");
+    cputsxy(METADEX, METADEY + 3, "[4]Creditos");
+    cputsxy(METADEX, METADEY + 4, "[5]Sair");
     resp = getch();
     switch(resp){
         case '1':
