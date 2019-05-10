@@ -2,16 +2,27 @@
 #include <stdlib.h>
 #include <conio2.h>
 #include <windows.h>
+#include <time.h>
+#include <stdlib.h>
 
-#define NUMOBSTACULOS 10
+#define NUMOBSTACULOS 6
 #define LINHA1 1// era 1
 #define LINHA2 25// era 20
 #define COLUNA1 1// era 10
 #define COLUNA2 80// era 70
+#define LINHAINICIAL 4
+#define COLUNAINICIAL 36
+#define PORCENTAGEMMERGULHADORES 50
+#define PORCENTAGEMSUBMARINOSINIMIGOS 50
 #define ALTURASUBMARINO 3
 #define COMPRIMENTOSUBMARINO 11
+#define SUBMARINOINIMIGO 1
+#define COMPRIMENTOMERGULHADOR 4
+#define MERGULHADOR 2
 #define DIREITA 1
 #define ESQUERDA 0
+#define INICIOAGUA 7
+#define CAMINHOPORLOOP 3
 #define METADEX COLUNA2 / 2
 #define METADEY LINHA2 / 2
 
@@ -163,6 +174,102 @@ void le_tecla_imprime2 (){
     clrscr();
 }
 
+void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {
+    if (submarino_inimigo.orientacao) {// eh diferente de 0 logo direita
+        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2,"_");
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___| |___");
+        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,">\\________)");
+
+    } else {// eh zero logo esquerda
+        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2,"_");
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___| |___");
+        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"(________/<");
+    }
+}
+
+void imprime_mergulhador(OBSTACULO mergulhador) {
+    if (mergulhador.orientacao) {// eh diferente de 0 logo direita
+        cputsxy(mergulhador.posicao.X,mergulhador.posicao.Y,">->O");
+
+    } else {// eh zero logo esquerda
+        cputsxy(mergulhador.posicao.X,mergulhador.posicao.Y,"O<-<");
+    }
+}
+
+void apaga_submarino_inimigo(OBSTACULO submarino_inimigo) {
+    /*if (submarino_inimigo.orientacao) {// eh diferente de 0 logo direita
+        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"         ");
+        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"           ");
+
+    } else {// eh zero logo esquerda
+        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"         ");
+        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"           ");
+    }*/
+    cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
+    cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"         ");
+    cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"           ");
+}
+
+void apaga_mergulhador(OBSTACULO mergulhador) {
+    cputsxy(mergulhador.posicao.X,mergulhador.posicao.Y,"    ");
+}
+
+void imprime_obstaculos (OBSTACULO *obstaculo) {
+    int i;
+    for (i = 0;i<NUMOBSTACULOS;i++) {
+        if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
+            imprime_submarino_inimigo(obstaculo[i]);
+        } else if (obstaculo[i].tipo==MERGULHADOR) {
+            imprime_mergulhador(obstaculo[i]);       
+        }
+    }
+}
+
+void apaga_obstaculos (OBSTACULO *obstaculo) {
+    int i;
+    for (i = 0;i<NUMOBSTACULOS;i++) {
+        if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
+            apaga_submarino_inimigo(obstaculo[i]);
+        } else if (obstaculo[i].tipo==MERGULHADOR){
+            apaga_mergulhador(obstaculo[i]);       
+        }
+    }
+}
+
+
+
+void atualiza_submarino_inimigo (OBSTACULO *submarino_inimigo) {
+    if (submarino_inimigo->orientacao==ESQUERDA) {
+        //submarino_inimigo->posicao.X -= COMPRIMENTOSUBMARINO;
+        submarino_inimigo->posicao.X -= CAMINHOPORLOOP;
+    } else {
+        //submarino_inimigo->posicao.X += COMPRIMENTOSUBMARINO;
+        submarino_inimigo->posicao.X += CAMINHOPORLOOP;
+    }
+}
+
+void atualiza_mergulhador (OBSTACULO *mergulhador) {
+    if (mergulhador->orientacao==ESQUERDA) {
+        mergulhador->posicao.X -= CAMINHOPORLOOP;
+    } else {
+        mergulhador->posicao.X += CAMINHOPORLOOP;
+    }
+}
+
+void atualiza_obstaculos(OBSTACULO *obstaculo) {
+    int i;
+    for(i = 0; i<NUMOBSTACULOS;i++) {
+         if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
+            atualiza_submarino_inimigo(&obstaculo[i]);
+        } else if (obstaculo[i].tipo==MERGULHADOR){
+            atualiza_mergulhador(&obstaculo[i]);       
+        }
+    } 
+
+}
+
 void imprime_submarino(SUBMARINO submarino) {
     // 14 <-> YELLOW
     textcolor (YELLOW);// troca a cor do texto para amarelo
@@ -181,6 +288,7 @@ void imprime_submarino(SUBMARINO submarino) {
 }
 
 void apaga_submarino(SUBMARINO submarino) {
+    /*
     if (submarino.orientacao) {// eh diferente de 0 logo direita
         cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
         cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
@@ -190,8 +298,92 @@ void apaga_submarino(SUBMARINO submarino) {
         cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
         cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
         cputsxy(submarino.posicao.X,submarino.posicao.Y,"           ");
-    }
+    }*/
+    cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
+    cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
+    cputsxy(submarino.posicao.X,submarino.posicao.Y,"           ");
 
+}
+
+void gera_obstaculos(OBSTACULO *obstaculo) {
+    int i;
+    int probabilidade_tipo;
+    int probabilidade_gerar;
+    int orientacao;
+    srand(time(0)); 
+    for(i = 0; i<NUMOBSTACULOS;i++) {
+        /*
+        probabilidade_tipo = rand()%99+1;//rand()%99+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem
+         if (obstaculo[i].tipo==0) {// significa que o obstaculo n foi inicializado
+            if (probabilidade_tipo<=PORCENTAGEMMERGULHADORES) {
+                orientacao = rand()%2;
+                obstaculo[i].tipo = MERGULHADOR;
+                obstaculo[i].orientacao = orientacao;
+                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
+                if (orientacao) {
+                   obstaculo[i].posicao.X = 2; 
+                } else {
+                    obstaculo[i].posicao.X = 68;
+                }
+            } else if (probabilidade_tipo>PORCENTAGEMMERGULHADORES && probabilidade_tipo<=PORCENTAGEMMERGULHADORES+PORCENTAGEMSUBMARINOSINIMIGOS) {
+                orientacao = rand()%2;
+                obstaculo[i].tipo = SUBMARINOINIMIGO;
+                obstaculo[i].orientacao = orientacao;
+                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
+                if (orientacao) {
+                   obstaculo[i].posicao.X = 2; 
+                } else {
+                    obstaculo[i].posicao.X = 68;
+                }
+            }
+        }*/ 
+        probabilidade_tipo = rand()%99+1;//rand()%99+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem
+         if (obstaculo[i].tipo==0) {// significa que o obstaculo n foi inicializado
+            probabilidade_gerar = rand()%2;
+            if (probabilidade_gerar) {
+            if (probabilidade_tipo<=PORCENTAGEMMERGULHADORES) {
+                orientacao = rand()%2;
+                obstaculo[i].tipo = MERGULHADOR;
+                obstaculo[i].orientacao = orientacao;
+                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
+                if (orientacao) {
+                   obstaculo[i].posicao.X = 2; 
+                } else {
+                    obstaculo[i].posicao.X = 68;
+                }
+            } else if (probabilidade_tipo>PORCENTAGEMMERGULHADORES) {
+                orientacao = rand()%2;
+                obstaculo[i].tipo = SUBMARINOINIMIGO;
+                obstaculo[i].orientacao = orientacao;
+                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
+                if (orientacao) {
+                   obstaculo[i].posicao.X = 2; 
+                } else {
+                    obstaculo[i].posicao.X = 68;
+                }
+            }
+        }    }
+    } 
+}
+
+void testa_colisao_obstaculos_tela(OBSTACULO *obstaculos) {
+    int i;
+    for (i = 0; i<NUMOBSTACULOS;i++) {
+        if (obstaculos[i].tipo==MERGULHADOR) {
+            if (obstaculos[i].posicao.X+COMPRIMENTOMERGULHADOR-1>=COLUNA2 || obstaculos[i].posicao.X<=COLUNA1) {
+                obstaculos[i].tipo = 0;
+            }
+        } else if (obstaculos[i].tipo==SUBMARINOINIMIGO) {
+            if (obstaculos[i].posicao.X+COMPRIMENTOSUBMARINO-1>=COLUNA2 || obstaculos[i].posicao.X<=COLUNA1) {
+                obstaculos[i].tipo = 0;
+            }
+        }
+    }
+}
+
+void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
+    testa_colisao_obstaculos_tela(obstaculos);
+    //testa_colisao_submarino_obstaculos(submarino,obstaculos);
 }
 
 
@@ -199,10 +391,10 @@ void apaga_submarino(SUBMARINO submarino) {
 // acho q pular para cima e baixo esta certo mas para os lados incorreto, mas achei meio estranho mover uma so posicao para direita ou esquerda
 // pois a tela eh muito pequena para andar tao rapido assim
 // talvez a melhor solucao seja mover entre 1 e 11
-void move_sub(SUBMARINO *submarino){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
+void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
     // passei por ponteiro para alterar no da funcao principal
 
-    // quando apertar <- ou -> se estiver virado para o lado oposto ele apenas virara para o lado certo se
+    // quando apertar <- ou -> se estiver virado para o lado oposto ele apenas virara para o lado certo se 
     // ja estiver virada para o lado certo ele "anda", fiz isso pq achei meio roubado virar e andar num movimento so
     // facil de tirar
     // obs: n foi proposital mas do jeito que esta fica impossivel caso esteja na borda esquerda virado para a esquerda
@@ -211,7 +403,8 @@ void move_sub(SUBMARINO *submarino){// deixei ainda com dois switch por que vai 
     int sair = 0;
     imprime_submarino(*submarino);
     do {
-        Sleep(50);
+        Sleep(100);
+        gera_obstaculos(obstaculos);
         if (kbhit()) {
             //fflush(stdin);
             a = getch();
@@ -220,7 +413,7 @@ void move_sub(SUBMARINO *submarino){// deixei ainda com dois switch por que vai 
                     a = getch();
                     switch(a) {// deixei as funcoes de apagar e imprimir dentro dos ifs para n ficar imprimindo e apagando quando desnecessario
                         case 72:
-                            if (submarino->posicao.Y-ALTURASUBMARINO>LINHA1) {
+                            if (submarino->posicao.Y-2*ALTURASUBMARINO+1>LINHA1) {
                                 apaga_submarino(*submarino);
                                 submarino->posicao.Y -=ALTURASUBMARINO;
                                 imprime_submarino(*submarino);
@@ -237,33 +430,33 @@ void move_sub(SUBMARINO *submarino){// deixei ainda com dois switch por que vai 
                         case 77:
                             // se deseja pular if (submarino->posicao.X+2*COMPRIMENTOSUBMARINO<COLUNA2) {
                             // se n deseja pular if (submarino->posicao.X+COMPRIMENTOSUBMARINO+1<COLUNA2) {
-                            if (submarino->posicao.X+2*COMPRIMENTOSUBMARINO<COLUNA2) {
+                            if (submarino->posicao.X+COMPRIMENTOSUBMARINO+CAMINHOPORLOOP-1<COLUNA2) {
                                 // 2 vezes pois precisa verificar se a ponto (11) cabe na proxima posicao
                                 // logo precisa verificar 22
                                 apaga_submarino(*submarino);
                                 if (submarino->orientacao==DIREITA) {
-                                    submarino->posicao.X +=COMPRIMENTOSUBMARINO;
+                                    submarino->posicao.X +=CAMINHOPORLOOP;
                                     // se n deseja pular submarino->posicao.X +=1;
                                     //submarino->posicao.X +=COMPRIMENTOSUBMARINO; se deseja pular
                                 }else {
                                     submarino->orientacao = DIREITA;
-                                }
+                                }    
                                 imprime_submarino(*submarino);
                             }
                             //x +=1;
                             break;
                         case 75:
-                            // se deseja pular if (submarino->posicao.X-COMPRIMENTOSUBMARINO>COLUNA1) {
-                            // se n deseja pular if (submarino->posicao.X-1>COLUNA1) {
-                            if (submarino->posicao.X-COMPRIMENTOSUBMARINO>COLUNA1) {
+                            // se deseja pular if (submarino->posicao.X-COMPRIMENTOSUBMARINO>COLUNA1) {    
+                            // se n deseja pular if (submarino->posicao.X-1>COLUNA1) {  
+                            if (submarino->posicao.X-CAMINHOPORLOOP>COLUNA1) {                              
                                 apaga_submarino(*submarino);
                                 if (submarino->orientacao==ESQUERDA) {
-                                    submarino->posicao.X -=COMPRIMENTOSUBMARINO;
+                                    submarino->posicao.X -=CAMINHOPORLOOP;
                                     // se n deseja pular submarino->posicao.X -=1;
                                     // submarino->posicao.X -=COMPRIMENTOSUBMARINO; se deseja pular
                                 } else {
                                     submarino->orientacao = ESQUERDA;
-                                }
+                                }                                
                                 imprime_submarino(*submarino);
                             }
                             //x -=1;
@@ -275,6 +468,10 @@ void move_sub(SUBMARINO *submarino){// deixei ainda com dois switch por que vai 
                     break;
             }
         }
+        apaga_obstaculos(obstaculos);
+        atualiza_obstaculos(obstaculos);
+        testa_colisao(submarino,obstaculos);
+        imprime_obstaculos(obstaculos);
     } while(sair==0 && submarino->vidas>0);
     clrscr();
 }
@@ -357,16 +554,18 @@ void creditos(){
 
 
 int main() {
-    OBSTACULO  obstaculos [NUMOBSTACULOS];
+    OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
     // o oxigenio depende do sleep entre os lacos
     // tem 30 segundos de oxigenio mas se o cada laço demora
     // meio segundo seria botar 60 de oxigenio e decrementar
     // 1 por laco
-    SUBMARINO sub = {{2,4},DIREITA,3,30,0,0};
+    SUBMARINO sub = {{COLUNAINICIAL,LINHAINICIAL},DIREITA,3,30,0,0};
     //char leitura ;
     //imprime_moldura();
-    menu();
+    //menu();
     //le_tecla_imprime2();
     //move_sub(&sub);
+    imprime_moldura();
+    move_sub(&sub,obstaculos);
     return 0;
 }
