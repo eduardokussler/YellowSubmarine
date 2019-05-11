@@ -36,7 +36,8 @@
 #define METADEX COLUNA2 / 2
 #define METADEY LINHA2 / 2
 #define SPAWNESQUERDAOBSTACULO 2// se o obstaculo der spawn na esquerda seu x sera 2
-#define SPAWNDIREITAOBSTACULO 69// se o obstaculo der spawn na direita seu x sera 69
+#define SPAWNDIREITASUBMARINO 69// se o obstaculo der spawn na direita seu x sera 69
+#define SPAWNDIREITAMERGULHADOR 76
 
 void menu();
 void creditos();
@@ -324,42 +325,46 @@ void apaga_submarino(SUBMARINO submarino) {// posicoes que devem ser apagadas n 
 }
 
 // funcao que gera obstaculos
-//rand()%99+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem (poderia tirar o +1 mais eh mais intuivo)
+//rand()%100+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem (poderia tirar o +1 mais eh mais intuivo)
 // pensar com um numero entre 1 e 100 do que com 0 e 99 em termos de porcentagem
-//na versao atual da funcao n precisa rand()%99+1 pois foi utilizado 50 por cento para mergulhadores e 50 para sub inimigos
+//na versao atual da funcao n precisa rand()%100+1 pois foi utilizado 50 por cento para mergulhadores e 50 para sub inimigos
 // mas esta ai caso queira fazer um numero mais quebrado
 void gera_obstaculos(OBSTACULO *obstaculo) {
     int i;
-    int probabilidade_tipo;// probabilidade de gerar mergulhador ou sub inimigo eh calculada com esse valor
-    int probabilidade_gerar;// probabilidade de gerar um obstaculo 
-    // foi utilizadapara nem sempre gerar obstaculos pq se esse fosse o caso ficaria muito estranho 
+    int probabilidade_tipo;
+    int probabilidade_gerar;
     int orientacao;
-    srand(time(0)); 
+    srand(time(0));
     for(i = 0; i<NUMOBSTACULOS;i++) {
+        probabilidade_tipo = rand()%100+1;
          if (obstaculo[i].tipo==SEMOBSTACULO) {
-            probabilidade_gerar = rand()%2;// 50 por cento de chance de gerar e rand()%2 retorna 1 ou 0
+            probabilidade_gerar = rand()%2;
             if (probabilidade_gerar) {
-                probabilidade_tipo = rand()%100+1;
-                
-                orientacao = rand()%2;
-                if (orientacao) {// se ele comeca virado para direita tem que ir para direita e comeca na esquerda
-                    obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO; 
-                } else {// se n eh direita eh esquerda
-                    obstaculo[i].posicao.X = SPAWNDIREITAOBSTACULO;
-                }
-                // cada bloco de obstaculos tem a altura do sub pois eh o objeto com maior altura que pode estar em um bloco
-                obstaculo[i].posicao.Y = INICIOAGUA+i*ALTURASUBMARINO;
-                obstaculo[i].orientacao = orientacao;
-
                 if (probabilidade_tipo<=PORCENTAGEMMERGULHADORES) {
+                    orientacao = rand()%2;
                     obstaculo[i].tipo = MERGULHADOR;
-                } else  {
+                    obstaculo[i].orientacao = orientacao;
+                    obstaculo[i].posicao.Y = INICIOAGUA+i*ALTURASUBMARINO;
+                    if (orientacao) {
+                       obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO;
+                    } else {
+                        obstaculo[i].posicao.X = SPAWNDIREITAMERGULHADOR;
+                    }
+                } else if (probabilidade_tipo>PORCENTAGEMMERGULHADORES) {
+                    orientacao = rand()%2;
                     obstaculo[i].tipo = SUBMARINOINIMIGO;
+                    obstaculo[i].orientacao = orientacao;
+                    obstaculo[i].posicao.Y = INICIOAGUA+i*3;
+                    if (orientacao) {
+                       obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO;
+                    } else {
+                        obstaculo[i].posicao.X = SPAWNDIREITASUBMARINO;
+                    }
                 }
             }
-         }
+        }
     }
-}    
+}
 
 // verifica se um obstaculo em sua nova posicao colide com a tela
 // caso colida significa que o obstaculo completou sua rota ate o outro lado 
