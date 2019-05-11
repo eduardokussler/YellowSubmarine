@@ -398,10 +398,13 @@ void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
 }
 
 
-// funcao que move o submarino(porra isso eh meio obvio)(mas ela faz o submarino pular posicoes,executando fica claro)
+
 // acho q pular para cima e baixo esta certo mas para os lados incorreto, mas achei meio estranho mover uma so posicao para direita ou esquerda
 // pois a tela eh muito pequena para andar tao rapido assim
 // talvez a melhor solucao seja mover entre 1 e 11
+// funcao move o submarino e os obstaculos
+// n vou comentar individualmente as condicoes para ver se o submarino atravessou a borda mas o raciocinio eh semelhante ao usado
+// para ver se o submarino inimigo fez a mesma coisa
 void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
     // passei por ponteiro para alterar no da funcao principal
 
@@ -412,10 +415,10 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
     //      e vira para a direita nao ha como virar novamente para a esquerda
     char a;
     int sair = 0;
-    imprime_submarino(*submarino);
+    imprime_submarino(*submarino);// imprime o submarino inicialmente
     do {
-        Sleep(100);
-        gera_obstaculos(obstaculos);
+        Sleep(100);// para dar um tempo entre loops
+        gera_obstaculos(obstaculos);// funcao que gera obstaculos nas posicoes que n tem obstaculos
         if (kbhit()) {
             //fflush(stdin);
             a = getch();
@@ -479,6 +482,9 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
                     break;
             }
         }
+        // depois que faz o comando do submarino apaga os obstaculos na tela e atualiza as posicoes dos obstaculos
+        // dai testa se alguma dessas novas posicoes bate na tela, ou seja se o obstaculo atravessou a tela
+        // se esse for o caso esse obstaculo desaparece e imprime os obstaculos que ainda nao atravessaram
         apaga_obstaculos(obstaculos);
         atualiza_obstaculos(obstaculos);
         testa_colisao(submarino,obstaculos);
