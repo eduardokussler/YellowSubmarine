@@ -6,29 +6,49 @@
 #include <stdlib.h>
 
 #define NUMOBSTACULOS 6
-#define LINHA1 1// era 1
-#define LINHA2 25// era 20
-#define COLUNA1 1// era 10
-#define COLUNA2 80// era 70
-#define LINHAINICIAL 4
-#define COLUNAINICIAL 36
-#define PORCENTAGEMMERGULHADORES 50
-#define PORCENTAGEMSUBMARINOSINIMIGOS 50
-#define ALTURASUBMARINO 3
-#define COMPRIMENTOSUBMARINO 11
-#define SUBMARINOINIMIGO 1
+#define LINHA1 1// linha inicial da moldura
+#define LINHA2 25// linha final da moldura
+#define COLUNA1 1// coluna inicial da moldura
+#define COLUNA2 80// coluna final da moldura
+#define LINHAINICIAL 4// linha inicial do submarino controlado pelo jogador
+#define COLUNAINICIAL 36// coluna inicial do submarino controlado pelo jogador
+// provavelmente apenas uma das de baixo seram uteis pois se sei a porcentagem de um posso usar a de outro
+// no codigo so usei porcentagme de mergulhadores
+#define PORCENTAGEMMERGULHADORES 50// porcentagem de spawn de mergulhadores
+#define PORCENTAGEMSUBMARINOSINIMIGOS 50// porcentagem de spawn dos submarinos inimigos
+
+// talvez seja util mudar os valores das constantes abaixo e ajeitar o codigo
+// ajeitar para mostrar a altura em si(2) e o comprimento(10)
+#define ALTURASUBMARINO 3// nao seria altura em si mas significa que para escrever um submarino eh necessario 3 linhas
+#define COMPRIMENTOSUBMARINO 11// nao seria comprimento em si mas significa que para escrever um submarino eh necessario 11 colunas
+
+#define SUBMARINOINIMIGO 1// 1 eh o numero que indica que o obstaculo eh um submarino inimigo
+#define MERGULHADOR 2// 2 indica que o obstaculo eh um mergulhador
+#define SEMOBSTACULO 0// 0 indica que nao ha obstaculo na estrutura
+
+// 4 colunas para escrever mergulhador talvez seja util trocar para tres pelo mesmo motivo da altura sub se quiser trocar la
 #define COMPRIMENTOMERGULHADOR 4
-#define MERGULHADOR 2
-#define DIREITA 1
-#define ESQUERDA 0
-#define INICIOAGUA 7
-#define CAMINHOPORLOOP 3
+
+#define DIREITA 1// foi convencionado que orientacao 1 eh direita
+#define ESQUERDA 0// foi convencionado que orientacao 0 eh esquerda
+#define INICIOAGUA 7// o submarino pode estar dentro ou fora dagua, se  estiver em 7 ou abaixo esta abaixo da agua
+#define CAMINHOPORLOOP 3// caminho andado por loop, a cade loop os obstaculos avancam 3 posicoes no caso
 #define METADEX COLUNA2 / 2
 #define METADEY LINHA2 / 2
+#define SPAWNESQUERDAOBSTACULO 2// se o obstaculo der spawn na esquerda seu x sera 2
+#define SPAWNDIREITAOBSTACULO 69// se o obstaculo der spawn na direita seu x sera 69
 
 void menu();
 void creditos();
 void proMeio();
+
+
+// se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
+// se tem um ponteiro para a estrutura usa estrutura_pointeiro->atributo ex: ponteiro_para_submarino_do_kuss_kussler->orientacao
+// se tem um vetor de obstaculos por exemplo e quer acessar atributos de cada e isso esta dentro da funcao
+// entao foi passado para a funcao um ponteiro para a primeira posicao do vetor
+// entao para acessar um atributo de algum desses dentro de um for faz de 0 ate <NUMOBSTACULOS e bota obstaculos_kussler[i].orientacao
+
 // to fingindo q sei o q to fazendo
 // parece que já tem o tipo COORDENADA na conio
 typedef struct submarino {
@@ -174,7 +194,7 @@ void le_tecla_imprime2 (){
     clrscr();
 }
 
-void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {
+void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     if (submarino_inimigo.orientacao) {// eh diferente de 0 logo direita
         cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2,"_");
         cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___| |___");
@@ -187,7 +207,7 @@ void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {
     }
 }
 
-void imprime_mergulhador(OBSTACULO mergulhador) {
+void imprime_mergulhador(OBSTACULO mergulhador) {// imprime mergulhador uso do if pois depende da orientacao
     if (mergulhador.orientacao) {// eh diferente de 0 logo direita
         cputsxy(mergulhador.posicao.X,mergulhador.posicao.Y,">->O");
 
@@ -197,26 +217,21 @@ void imprime_mergulhador(OBSTACULO mergulhador) {
 }
 
 void apaga_submarino_inimigo(OBSTACULO submarino_inimigo) {
-    /*if (submarino_inimigo.orientacao) {// eh diferente de 0 logo direita
-        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
-        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"         ");
-        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"           ");
-
-    } else {// eh zero logo esquerda
-        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
-        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"         ");
-        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"           ");
-    }*/
+    // apaga sub inimigo nao necessita if pois independente da orientacao tem que apagar mesmos espacos
     cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
     cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"         ");
     cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"           ");
 }
 
 void apaga_mergulhador(OBSTACULO mergulhador) {
+    // apaga mergulhador nao necessita if pois independente da orientacao tem que apagar mesmos espacos
     cputsxy(mergulhador.posicao.X,mergulhador.posicao.Y,"    ");
 }
 
 void imprime_obstaculos (OBSTACULO *obstaculo) {
+    // passando um ponteiro para a pos inicial de um vetor de obstaculos imprime os obstaculos dele até NUMOBSTACULOS
+    // utilizacao do else if no final pois foi convencionado que se o tipo for 0 nao representa nenhum nem outro
+    // ou seja nao foi inicializado ainda ou terminou sua rota
     int i;
     for (i = 0;i<NUMOBSTACULOS;i++) {
         if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
@@ -228,6 +243,9 @@ void imprime_obstaculos (OBSTACULO *obstaculo) {
 }
 
 void apaga_obstaculos (OBSTACULO *obstaculo) {
+    // passando um ponteiro para a pos inicial de um vetor de obstaculos apaga os obstaculos dele até NUMOBSTACULOS
+    // utilizacao do else if no final pois foi convencionado que se o tipo for 0 nao representa nenhum nem outro
+    // ou seja nao foi inicializado ainda ou terminou sua rota
     int i;
     for (i = 0;i<NUMOBSTACULOS;i++) {
         if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
@@ -239,13 +257,11 @@ void apaga_obstaculos (OBSTACULO *obstaculo) {
 }
 
 
-
+/*
 void atualiza_submarino_inimigo (OBSTACULO *submarino_inimigo) {
     if (submarino_inimigo->orientacao==ESQUERDA) {
-        //submarino_inimigo->posicao.X -= COMPRIMENTOSUBMARINO;
         submarino_inimigo->posicao.X -= CAMINHOPORLOOP;
     } else {
-        //submarino_inimigo->posicao.X += COMPRIMENTOSUBMARINO;
         submarino_inimigo->posicao.X += CAMINHOPORLOOP;
     }
 }
@@ -257,20 +273,32 @@ void atualiza_mergulhador (OBSTACULO *mergulhador) {
         mergulhador->posicao.X += CAMINHOPORLOOP;
     }
 }
+*/
 
-void atualiza_obstaculos(OBSTACULO *obstaculo) {
-    int i;
-    for(i = 0; i<NUMOBSTACULOS;i++) {
-         if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
-            atualiza_submarino_inimigo(&obstaculo[i]);
-        } else if (obstaculo[i].tipo==MERGULHADOR){
-            atualiza_mergulhador(&obstaculo[i]);       
-        }
-    } 
 
+// as duas funcoes anteriores foram incorporadas em um so pois todos obstaculos andam o mesmo caminho por loop
+void atualiza_obstaculo (OBSTACULO *obstaculo) {
+    // atualiza a pos de um obstaculo ou seja se esta virado para esquerda anda o caminhoporloop para esquerda
+    // se esta virado para a direita anda o caminhoporllop para direita
+    if (obstaculo->orientacao) {// eh direita
+        obstaculo->posicao.X += CAMINHOPORLOOP;
+    } else {// se n direita eh esquerda
+        obstaculo->posicao.X -= CAMINHOPORLOOP;
+    }
 }
 
-void imprime_submarino(SUBMARINO submarino) {
+void atualiza_obstaculos(OBSTACULO *obstaculo) {// atualiza a posicao dos obstaculos 
+    // atualiza a pos dos obstaculos ou seja se esta virado para esquerda anda o caminhoporloop para esquerda
+    // se esta virado para a direita anda o caminhoporllop para direita
+    int i;
+    for(i = 0; i<NUMOBSTACULOS;i++) {
+         if (obstaculo[i].tipo==SUBMARINOINIMIGO || obstaculo[i].tipo==MERGULHADOR) {
+            atualiza_obstaculo(&obstaculo[i]);
+        } 
+    } 
+}
+
+void imprime_submarino(SUBMARINO submarino) {// imprime o sub do jogador
     // 14 <-> YELLOW
     textcolor (YELLOW);// troca a cor do texto para amarelo
     if (submarino.orientacao) {// eh diferente de 0 logo direita
@@ -287,100 +315,78 @@ void imprime_submarino(SUBMARINO submarino) {
 
 }
 
-void apaga_submarino(SUBMARINO submarino) {
-    /*
-    if (submarino.orientacao) {// eh diferente de 0 logo direita
-        cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
-        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
-        cputsxy(submarino.posicao.X,submarino.posicao.Y,"           ");
-
-    } else {// eh zero logo esquerda
-        cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
-        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
-        cputsxy(submarino.posicao.X,submarino.posicao.Y,"           ");
-    }*/
+void apaga_submarino(SUBMARINO submarino) {// posicoes que devem ser apagadas n dependem da orientacao logo sem if
+    // funcao que apaga sub
     cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
     cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
     cputsxy(submarino.posicao.X,submarino.posicao.Y,"           ");
 
 }
 
+// funcao que gera obstaculos
+//rand()%99+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem (poderia tirar o +1 mais eh mais intuivo)
+// pensar com um numero entre 1 e 100 do que com 0 e 99 em termos de porcentagem
+//na versao atual da funcao n precisa rand()%99+1 pois foi utilizado 50 por cento para mergulhadores e 50 para sub inimigos
+// mas esta ai caso queira fazer um numero mais quebrado
 void gera_obstaculos(OBSTACULO *obstaculo) {
     int i;
-    int probabilidade_tipo;
-    int probabilidade_gerar;
+    int probabilidade_tipo;// probabilidade de gerar mergulhador ou sub inimigo eh calculada com esse valor
+    int probabilidade_gerar;// probabilidade de gerar um obstaculo 
+    // foi utilizadapara nem sempre gerar obstaculos pq se esse fosse o caso ficaria muito estranho 
     int orientacao;
     srand(time(0)); 
     for(i = 0; i<NUMOBSTACULOS;i++) {
-        /*
-        probabilidade_tipo = rand()%99+1;//rand()%99+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem
-         if (obstaculo[i].tipo==0) {// significa que o obstaculo n foi inicializado
-            if (probabilidade_tipo<=PORCENTAGEMMERGULHADORES) {
-                orientacao = rand()%2;
-                obstaculo[i].tipo = MERGULHADOR;
-                obstaculo[i].orientacao = orientacao;
-                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
-                if (orientacao) {
-                   obstaculo[i].posicao.X = 2; 
-                } else {
-                    obstaculo[i].posicao.X = 68;
-                }
-            } else if (probabilidade_tipo>PORCENTAGEMMERGULHADORES && probabilidade_tipo<=PORCENTAGEMMERGULHADORES+PORCENTAGEMSUBMARINOSINIMIGOS) {
-                orientacao = rand()%2;
-                obstaculo[i].tipo = SUBMARINOINIMIGO;
-                obstaculo[i].orientacao = orientacao;
-                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
-                if (orientacao) {
-                   obstaculo[i].posicao.X = 2; 
-                } else {
-                    obstaculo[i].posicao.X = 68;
-                }
-            }
-        }*/ 
-        probabilidade_tipo = rand()%99+1;//rand()%99+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem
-         if (obstaculo[i].tipo==0) {// significa que o obstaculo n foi inicializado
-            probabilidade_gerar = rand()%2;
+         if (obstaculo[i].tipo==SEMOBSTACULO) {
+            probabilidade_gerar = rand()%2;// 50 por cento de chance de gerar e rand()%2 retorna 1 ou 0
             if (probabilidade_gerar) {
-            if (probabilidade_tipo<=PORCENTAGEMMERGULHADORES) {
+                probabilidade_tipo = rand()%100+1;
+                
                 orientacao = rand()%2;
-                obstaculo[i].tipo = MERGULHADOR;
-                obstaculo[i].orientacao = orientacao;
-                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
-                if (orientacao) {
-                   obstaculo[i].posicao.X = 2; 
-                } else {
-                    obstaculo[i].posicao.X = 68;
+                if (orientacao) {// se ele comeca virado para direita tem que ir para direita e comeca na esquerda
+                    obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO; 
+                } else {// se n eh direita eh esquerda
+                    obstaculo[i].posicao.X = SPAWNDIREITAOBSTACULO;
                 }
-            } else if (probabilidade_tipo>PORCENTAGEMMERGULHADORES) {
-                orientacao = rand()%2;
-                obstaculo[i].tipo = SUBMARINOINIMIGO;
+                // cada bloco de obstaculos tem a altura do sub pois eh o objeto com maior altura que pode estar em um bloco
+                obstaculo[i].posicao.Y = INICIOAGUA+i*ALTURASUBMARINO;
                 obstaculo[i].orientacao = orientacao;
-                obstaculo[i].posicao.Y = INICIOAGUA+i*3;
-                if (orientacao) {
-                   obstaculo[i].posicao.X = 2; 
-                } else {
-                    obstaculo[i].posicao.X = 68;
+
+                if (probabilidade_tipo<=PORCENTAGEMMERGULHADORES) {
+                    obstaculo[i].tipo = MERGULHADOR;
+                } else  {
+                    obstaculo[i].tipo = SUBMARINOINIMIGO;
                 }
             }
-        }    }
-    } 
-}
+         }
+    }
+}    
 
+// verifica se um obstaculo em sua nova posicao colide com a tela
+// caso colida significa que o obstaculo completou sua rota ate o outro lado 
+// logo ele eh "deletado" e as linhas que ele ocupava esperam ate que seja gerado outro obstaculo
+// o -1 foi inserido nos testes com a coluna2 pois por exemplo um mergulhador ocupa 4 colunas
+// logo se ele esta na pos x ele ocupa x x+1 x+2 e x+3 logo o teste com a coluna 2 deve ser feito com x+3
+// e como o comprimento do mergulhador foi feito como a quantidade de linhas necessaria para denhar ele (4)
+// dai o x+3 eh x+comprimentomergulhador-1, mesma logica para o submarino
+// por isso que foi comentado na definicao de constantes se deveria trocar o valor do comp do sub e do mergulhador 
+// por que dai n depende do -1
 void testa_colisao_obstaculos_tela(OBSTACULO *obstaculos) {
     int i;
     for (i = 0; i<NUMOBSTACULOS;i++) {
         if (obstaculos[i].tipo==MERGULHADOR) {
             if (obstaculos[i].posicao.X+COMPRIMENTOMERGULHADOR-1>=COLUNA2 || obstaculos[i].posicao.X<=COLUNA1) {
-                obstaculos[i].tipo = 0;
+                obstaculos[i].tipo = SEMOBSTACULO;
             }
         } else if (obstaculos[i].tipo==SUBMARINOINIMIGO) {
             if (obstaculos[i].posicao.X+COMPRIMENTOSUBMARINO-1>=COLUNA2 || obstaculos[i].posicao.X<=COLUNA1) {
-                obstaculos[i].tipo = 0;
+                obstaculos[i].tipo = SEMOBSTACULO;
             }
         }
     }
 }
 
+// testa se houve colisao entre as bordas da tela e os obstaculos(o obstaculo completou sua rota logo eh apagado)
+// eventualmente deve testar colisao entre submarino e obstaculos e entre misseis e obstaculos
 void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
     testa_colisao_obstaculos_tela(obstaculos);
     //testa_colisao_submarino_obstaculos(submarino,obstaculos);
@@ -476,7 +482,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
     clrscr();
 }
 
-void imprime_moldura() {
+void imprime_moldura() {// imprime a moldura do jogo 
     int x,y;
 
     for(x = COLUNA1+1;x<COLUNA2;x++) {
@@ -554,7 +560,7 @@ void creditos(){
 
 
 int main() {
-    OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
+    OBSTACULO  obstaculos [NUMOBSTACULOS] = {};// inicializa tudo com 0
     // o oxigenio depende do sleep entre os lacos
     // tem 30 segundos de oxigenio mas se o cada laço demora
     // meio segundo seria botar 60 de oxigenio e decrementar
