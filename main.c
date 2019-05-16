@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <time.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define NUMOBSTACULOS 6
 #define LINHA1 1// linha inicial da moldura
@@ -38,6 +39,12 @@
 #define SPAWNESQUERDAOBSTACULO 2// se o obstaculo der spawn na esquerda seu x sera 2
 #define SPAWNDIREITASUBMARINO 69// se o obstaculo der spawn na direita seu x sera 69
 #define SPAWNDIREITAMERGULHADOR 76
+
+//Definir a pontuacao para cada evento do jogo
+#define SALVAMERGULHADOR 20
+#define DESTRUIRSUBINIMIGO 10
+#define PONTUACAOPORTEMPOSUBMERGIDO 1
+
 
 void menu();
 void creditos();
@@ -238,7 +245,7 @@ void imprime_obstaculos (OBSTACULO *obstaculo) {
         if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
             imprime_submarino_inimigo(obstaculo[i]);
         } else if (obstaculo[i].tipo==MERGULHADOR) {
-            imprime_mergulhador(obstaculo[i]);       
+            imprime_mergulhador(obstaculo[i]);
         }
     }
 }
@@ -252,7 +259,7 @@ void apaga_obstaculos (OBSTACULO *obstaculo) {
         if (obstaculo[i].tipo==SUBMARINOINIMIGO) {
             apaga_submarino_inimigo(obstaculo[i]);
         } else if (obstaculo[i].tipo==MERGULHADOR){
-            apaga_mergulhador(obstaculo[i]);       
+            apaga_mergulhador(obstaculo[i]);
         }
     }
 }
@@ -288,15 +295,15 @@ void atualiza_obstaculo (OBSTACULO *obstaculo) {
     }
 }
 
-void atualiza_obstaculos(OBSTACULO *obstaculo) {// atualiza a posicao dos obstaculos 
+void atualiza_obstaculos(OBSTACULO *obstaculo) {// atualiza a posicao dos obstaculos
     // atualiza a pos dos obstaculos ou seja se esta virado para esquerda anda o caminhoporloop para esquerda
     // se esta virado para a direita anda o caminhoporllop para direita
     int i;
     for(i = 0; i<NUMOBSTACULOS;i++) {
          if (obstaculo[i].tipo==SUBMARINOINIMIGO || obstaculo[i].tipo==MERGULHADOR) {
             atualiza_obstaculo(&obstaculo[i]);
-        } 
-    } 
+        }
+    }
 }
 
 void imprime_submarino(SUBMARINO submarino) {// imprime o sub do jogador
@@ -367,13 +374,13 @@ void gera_obstaculos(OBSTACULO *obstaculo) {
 }
 
 // verifica se um obstaculo em sua nova posicao colide com a tela
-// caso colida significa que o obstaculo completou sua rota ate o outro lado 
+// caso colida significa que o obstaculo completou sua rota ate o outro lado
 // logo ele eh "deletado" e as linhas que ele ocupava esperam ate que seja gerado outro obstaculo
 // o -1 foi inserido nos testes com a coluna2 pois por exemplo um mergulhador ocupa 4 colunas
 // logo se ele esta na pos x ele ocupa x x+1 x+2 e x+3 logo o teste com a coluna 2 deve ser feito com x+3
 // e como o comprimento do mergulhador foi feito como a quantidade de linhas necessaria para denhar ele (4)
 // dai o x+3 eh x+comprimentomergulhador-1, mesma logica para o submarino
-// por isso que foi comentado na definicao de constantes se deveria trocar o valor do comp do sub e do mergulhador 
+// por isso que foi comentado na definicao de constantes se deveria trocar o valor do comp do sub e do mergulhador
 // por que dai n depende do -1
 void testa_colisao_obstaculos_tela(OBSTACULO *obstaculos) {
     int i;
@@ -394,7 +401,7 @@ void testa_colisao_obstaculos_tela(OBSTACULO *obstaculos) {
 // eventualmente deve testar colisao entre submarino e obstaculos e entre misseis e obstaculos
 void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
     testa_colisao_obstaculos_tela(obstaculos);
-    //testa_colisao_submarino_obstaculos(submarino,obstaculos);
+    testa_colisao_submarino_obstaculos(submarino,obstaculos);
 }
 
 
@@ -408,7 +415,7 @@ void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
 void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
     // passei por ponteiro para alterar no da funcao principal
 
-    // quando apertar <- ou -> se estiver virado para o lado oposto ele apenas virara para o lado certo se 
+    // quando apertar <- ou -> se estiver virado para o lado oposto ele apenas virara para o lado certo se
     // ja estiver virada para o lado certo ele "anda", fiz isso pq achei meio roubado virar e andar num movimento so
     // facil de tirar
     // obs: n foi proposital mas do jeito que esta fica impossivel caso esteja na borda esquerda virado para a esquerda
@@ -454,15 +461,15 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
                                     //submarino->posicao.X +=COMPRIMENTOSUBMARINO; se deseja pular
                                 }else {
                                     submarino->orientacao = DIREITA;
-                                }    
+                                }
                                 imprime_submarino(*submarino);
                             }
                             //x +=1;
                             break;
                         case 75:
-                            // se deseja pular if (submarino->posicao.X-COMPRIMENTOSUBMARINO>COLUNA1) {    
-                            // se n deseja pular if (submarino->posicao.X-1>COLUNA1) {  
-                            if (submarino->posicao.X-CAMINHOPORLOOP>COLUNA1) {                              
+                            // se deseja pular if (submarino->posicao.X-COMPRIMENTOSUBMARINO>COLUNA1) {
+                            // se n deseja pular if (submarino->posicao.X-1>COLUNA1) {
+                            if (submarino->posicao.X-CAMINHOPORLOOP>COLUNA1) {
                                 apaga_submarino(*submarino);
                                 if (submarino->orientacao==ESQUERDA) {
                                     submarino->posicao.X -=CAMINHOPORLOOP;
@@ -470,7 +477,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
                                     // submarino->posicao.X -=COMPRIMENTOSUBMARINO; se deseja pular
                                 } else {
                                     submarino->orientacao = ESQUERDA;
-                                }                                
+                                }
                                 imprime_submarino(*submarino);
                             }
                             //x -=1;
@@ -493,7 +500,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
     clrscr();
 }
 
-void imprime_moldura() {// imprime a moldura do jogo 
+void imprime_moldura() {// imprime a moldura do jogo
     int x,y;
 
     for(x = COLUNA1+1;x<COLUNA2;x++) {
@@ -567,6 +574,95 @@ void creditos(){
     }while(voltar != 27);
     clrscr();
     return menu();
+}
+//testa se alguma parte do submarino tocou alguma parte de um obstaculo
+int colidiuComUmaParte(COORD sub, COORD obstaculo){
+    double dist;
+    dist = pow(sub.X - obstaculo.X, 2) + pow(sub.Y - obstaculo.Y, 2);
+    dist = sqrt(dist);
+    return dist;
+}
+//A função recebe as coordenadas do submarino e as de um obstaculo
+//e testa se estão a menos de uma coordenada de distancia
+//se estiver, retorna 1
+//senão, retorna 0
+int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do submarino com alguma outra coisa
+    double dist;
+    int i, j, k, l;
+    int cont = 1;
+    //as proximas variaveis salvam a coordenada inferior esquerda
+    //do submarino aliado e dos inimigos
+    int XSubmarino = sub.X;
+    int YSubmarino = sub.Y;
+    int XSubmarinoInimigo = obstaculo.X;
+    int YSubamrinoInimigo = obstaculo.Y;
+    if(tipo == MERGULHADOR){
+        for(i = 0; i < COMPRIMENTOSUBMARINO; i++){//altera a coordenada x do submarino
+            sub.Y = YSubmarino; // reseta a altura quando o for de dentro acabar
+            //assim consegue testar a nova posição da parte x do submarino com todas as alturas
+            for(j = 0; j < ALTURASUBMARINO; j++){//altera a coordenada y do submarino
+                while(dist > 1 && cont < COMPRIMENTOMERGULHADOR){
+                    dist = colidiuComUmaParte(sub, obstaculo);//testa se já colidiu
+                    if(dist <=  1){
+                        return 1; // se colidir com alguma parte, já interrompe os loops
+                    }
+                    obstaculo.X += cont;//Para considerar o mergulhador todo e não só um ponto
+                    cont++;
+                }
+                sub.Y -= j;//altera a altura com a qual a comparação é feita
+            }
+            sub.X += i;
+        }
+        //se nenhum teste der 1, logo o sub não colidiu com nenhum mergulhador
+        return 0;
+    } else if(tipo == SUBMARINOINIMIGO){
+        for(i = 0; i < COMPRIMENTOSUBMARINO; i++){//altera a coordenada x do sub aliado
+            sub.Y = YSubmarino;
+            for(j = 0; j < ALTURASUBMARINO; j++){//altera a coordenada y do sub aliado
+               obstaculo.X = XSubmarinoInimigo;
+                for(k = 0; k < COMPRIMENTOSUBMARINO; k++){//altera a coordenada x do sub inimigo
+                    obstaculo.Y = YSubamrinoInimigo;
+                    for(l = 0; l < ALTURASUBMARINO; l++){//altera a coordenada y do sub inimigo
+                        dist = colidiuComUmaParte(sub, obstaculo);
+                        if(dist < 1){
+                            return 1;
+                        }
+                        obstaculo.Y++;//altera a coordenada para testar novamente
+                    }
+                    obstaculo.X++;//altera a coordenada para testar novamente
+                }
+                sub.Y++;//altera a coordenada para testar novamente
+            }
+            sub.X++;//altera a coordenada para testar novamente
+        }
+        return 0;
+    }
+}
+void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstaculos[]){
+    int i;
+
+    int colisao;
+    for(i = 0; i < NUMOBSTACULOS; i++){
+        colisao = colidiu((*submarino).posicao, obstaculos[i].posicao, obstaculos[i].tipo);
+        if(colisao){
+            if(obstaculos[i].tipo == SUBMARINOINIMIGO){
+                (*submarino).vidas--;
+                if((*submarino).vidas){
+                    apaga_submarino(*submarino);
+                    (*submarino).posicao.X = COLUNAINICIAL;
+                    (*submarino).posicao.Y = LINHAINICIAL;
+                    imprime_submarino(*submarino);
+                }
+            }else if(obstaculos[i].tipo == MERGULHADOR){
+                (*submarino).pontuacao += SALVAMERGULHADOR;
+                apaga_submarino(*submarino);
+                apaga_mergulhador(obstaculos[i]);
+                (*submarino).posicao.X = COLUNAINICIAL;
+                (*submarino).posicao.Y = LINHAINICIAL;
+                    imprime_submarino(*submarino);
+            }
+        }
+    }
 }
 
 
