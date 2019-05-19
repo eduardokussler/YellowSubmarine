@@ -678,67 +678,29 @@ void creditos(){
     clrscr();
     return menu();
 }
-//testa se alguma parte do submarino tocou alguma parte de um obstaculo
-int colidiuComUmaParte(COORD sub, COORD obstaculo){
-    double dist;
-    dist = pow(sub.X - obstaculo.X, 2) + pow(sub.Y - obstaculo.Y, 2);
-    dist = sqrt(dist);
-    return dist;
-}
+
 //A função recebe as coordenadas do submarino e as de um obstaculo
 //e testa se estão a menos de uma coordenada de distancia
 //se estiver, retorna 1
 //senão, retorna 0
 int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do submarino com alguma outra coisa
-    double dist;
-    int i, j, k, l;
-    int cont = 1;
-    //as proximas variaveis salvam a coordenada inferior esquerda
-    //do submarino aliado e dos inimigos
-    int XSubmarino = sub.X;
-    int YSubmarino = sub.Y;
-    int XSubmarinoInimigo = obstaculo.X;
-    int YSubamrinoInimigo = obstaculo.Y;
+
     if(tipo == MERGULHADOR){
-        for(i = 0; i < COMPRIMENTOSUBMARINO; i++){//altera a coordenada x do submarino
-            sub.Y = YSubmarino; // reseta a altura quando o for de dentro acabar
-            //assim consegue testar a nova posição da parte x do submarino com todas as alturas
-            for(j = 0; j < ALTURASUBMARINO; j++){//altera a coordenada y do submarino
-                while(dist > 1 && cont < COMPRIMENTOMERGULHADOR){
-                    dist = colidiuComUmaParte(sub, obstaculo);//testa se já colidiu
-                    if(dist <=  1){
-                        return 1; // se colidir com alguma parte, já interrompe os loops
-                    }
-                    obstaculo.X += cont;//Para considerar o mergulhador todo e não só um ponto
-                    cont++;
-                }
-                sub.Y -= j;//altera a altura com a qual a comparação é feita
-            }
-            sub.X += i;
+        //testa se alguma parte do retangulo que representam o tamanho dos obstáculos
+        //teve uma intersecção com o retangulo que representa o tamanho do submarino aliado
+        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO) > obstaculo.X) && (sub.X < obstaculo.X + COMPRIMENTOMERGULHADOR)){
+            return 1;
+        }else {
+            return 0;
         }
-        //se nenhum teste der 1, logo o sub não colidiu com nenhum mergulhador
         return 0;
     } else if(tipo == SUBMARINOINIMIGO){
-        for(i = 0; i < COMPRIMENTOSUBMARINO; i++){//altera a coordenada x do sub aliado
-            sub.Y = YSubmarino;
-            for(j = 0; j < ALTURASUBMARINO; j++){//altera a coordenada y do sub aliado
-               obstaculo.X = XSubmarinoInimigo;
-                for(k = 0; k < COMPRIMENTOSUBMARINO; k++){//altera a coordenada x do sub inimigo
-                    obstaculo.Y = YSubamrinoInimigo;
-                    for(l = 0; l < ALTURASUBMARINO; l++){//altera a coordenada y do sub inimigo
-                        dist = colidiuComUmaParte(sub, obstaculo);
-                        if(dist < 1){
-                            return 1;
-                        }
-                        obstaculo.Y++;//altera a coordenada para testar novamente
-                    }
-                    obstaculo.X++;//altera a coordenada para testar novamente
-                }
-                sub.Y++;//altera a coordenada para testar novamente
-            }
-            sub.X++;//altera a coordenada para testar novamente
+        //
+        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO) > obstaculo.X) && (sub.X < obstaculo.X + COMPRIMENTOSUBMARINO)){
+            return 1;
+        }else{
+            return 0;
         }
-        return 0;
     }
 }
 void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstaculos[]){
