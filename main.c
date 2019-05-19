@@ -688,7 +688,7 @@ int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do su
     if(tipo == MERGULHADOR){
         //testa se alguma parte do retangulo que representam o tamanho dos obstáculos
         //teve uma intersecção com o retangulo que representa o tamanho do submarino aliado
-        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO) > obstaculo.X) && (sub.X < obstaculo.X + COMPRIMENTOMERGULHADOR)){
+        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO - 1) >= obstaculo.X) && (sub.X <= (obstaculo.X + COMPRIMENTOMERGULHADOR - 1))){
             return 1;
         }else {
             return 0;
@@ -696,7 +696,7 @@ int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do su
         return 0;
     } else if(tipo == SUBMARINOINIMIGO){
         //
-        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO) > obstaculo.X) && (sub.X < obstaculo.X + COMPRIMENTOSUBMARINO)){
+        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO - 1) >= obstaculo.X) && (sub.X <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
             return 1;
         }else{
             return 0;
@@ -719,12 +719,9 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
                     imprime_submarino(*submarino);
                 }
             }else if(obstaculos[i].tipo == MERGULHADOR){
-                (*submarino).pontuacao += SALVAMERGULHADOR;
-                apaga_submarino(*submarino);
                 apaga_mergulhador(obstaculos[i]);
-                (*submarino).posicao.X = COLUNAINICIAL;
-                (*submarino).posicao.Y = LINHAINICIAL;
-                    imprime_submarino(*submarino);
+                obstaculos[i].tipo = SEMOBSTACULO;
+                imprime_submarino(*submarino);
             }
         }
     }
