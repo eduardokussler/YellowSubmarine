@@ -6,12 +6,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NUMOBSTACULOS 6
+#define NUMOBSTACULOS 5// de 6 foi pra 5 pra ter espaco pra botar informacoes na tela
 #define LINHA1 1// linha inicial da moldura
 #define LINHA2 25// linha final da moldura
 #define COLUNA1 1// coluna inicial da moldura
 #define COLUNA2 80// coluna final da moldura
-#define LINHAINICIAL 4// linha inicial do submarino controlado pelo jogador
+#define LINHAINICIAL 6// linha inicial do submarino controlado pelo jogador de 4 foi pra 7 necessario revisar condicao para deixar sub ir para cima?
 #define COLUNAINICIAL 36// coluna inicial do submarino controlado pelo jogador
 // provavelmente apenas uma das de baixo seram uteis pois se sei a porcentagem de um posso usar a de outro
 // no codigo so usei porcentagme de mergulhadores
@@ -32,9 +32,10 @@
 
 #define DIREITA 1// foi convencionado que orientacao 1 eh direita
 #define ESQUERDA 0// foi convencionado que orientacao 0 eh esquerda
-#define INICIOAGUA 7// o submarino pode estar dentro ou fora dagua, se  estiver em 7 ou abaixo esta abaixo da agua
+// so tornei mais generico o inicioagua
+#define INICIOAGUA LINHAINICIAL+ALTURASUBMARINO// o submarino pode estar dentro ou fora dagua, se  estiver em 7 ou abaixo esta abaixo da agua
 #define CAMINHOPORLOOP 3// caminho andado por loop, a cade loop os obstaculos avancam 3 posicoes no caso
-#define METADEX COLUNA2 / 2
+#define METADEX COLUNA2 / 2-3// alterei pra ficar mais no meio o texto
 #define METADEY LINHA2 / 2
 #define SPAWNESQUERDAOBSTACULO 2// se o obstaculo der spawn na esquerda seu x sera 2
 #define SPAWNDIREITASUBMARINO 69// se o obstaculo der spawn na direita seu x sera 69
@@ -269,6 +270,16 @@ void imprime_obstaculos (OBSTACULO *obstaculo) {
     }
 }
 
+void imprime_agua() {
+    int i;
+    textcolor (CYAN);
+    for (i = COLUNA1+1;i<COLUNA2;i++) {
+        putchxy(i,LINHAINICIAL,'~');
+    }
+    textcolor (WHITE);
+}
+    
+
 void apaga_obstaculos (OBSTACULO *obstaculo) {
     // passando um ponteiro para a pos inicial de um vetor de obstaculos apaga os obstaculos dele até NUMOBSTACULOS
     // utilizacao do else if no final pois foi convencionado que se o tipo for 0 nao representa nenhum nem outro
@@ -469,6 +480,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
     int sair = 0;
     imprime_moldura();
     imprime_submarino(*submarino);// imprime o submarino inicialmente
+    imprime_agua();
     do {
         Sleep(100);// para dar um tempo entre loops
         gera_obstaculos(obstaculos);// funcao que gera obstaculos nas posicoes que n tem obstaculos
@@ -485,11 +497,17 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
                                 apaga_submarino(*submarino);
                                 submarino->posicao.Y -=ALTURASUBMARINO;
                                 imprime_submarino(*submarino);
+                                if (submarino->posicao.Y==LINHAINICIAL) {
+                                    imprime_agua();
+                                }
                             }
                             break;
                         case SETABAIXO:
                             if (submarino->posicao.Y+ALTURASUBMARINO<LINHA2) {
                                 apaga_submarino(*submarino);
+                                if (submarino->posicao.Y==LINHAINICIAL) {
+                                    imprime_agua();
+                                }
                                 submarino->posicao.Y +=ALTURASUBMARINO;
                                 imprime_submarino(*submarino);
                             }
@@ -510,6 +528,9 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
                                     submarino->orientacao = DIREITA;
                                 }
                                 imprime_submarino(*submarino);
+                                if (submarino->posicao.Y==LINHAINICIAL) {
+                                    imprime_agua();
+                                }
                             }
                             //x +=1;
                             break;
@@ -526,6 +547,9 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
                                     submarino->orientacao = ESQUERDA;
                                 }
                                 imprime_submarino(*submarino);
+                                if (submarino->posicao.Y==LINHAINICIAL) {
+                                    imprime_agua();
+                                }
                             }
                             //x -=1;
                             break;
