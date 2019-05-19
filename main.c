@@ -331,6 +331,32 @@ void apaga_submarino(SUBMARINO submarino) {// posicoes que devem ser apagadas n 
 
 }
 
+void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma animação quando o jogador perde
+    int i;
+    apaga_obstaculos(obstaculos);// tira os obstaculos da tela
+    while(submarino->posicao.Y<LINHA2-1) {// vai até a linha antes da moldura
+        for (i = 0;i<4;i++) {
+            if (i%3) {
+                if (submarino->posicao.X-1>COLUNA1) {
+                    submarino->posicao.X--;
+                }
+            } else {
+                if (submarino->posicao.X+COMPRIMENTOSUBMARINO<COLUNA2) {//submarino->posicao.X+1+COMPRIMENTOSUBMARINO-1
+                    submarino->posicao.X++;
+                }
+            }
+            imprime_submarino(*submarino);
+            Sleep(100);
+            apaga_submarino(*submarino);
+        }
+        submarino->posicao.Y+=3;
+    }
+    clrscr();
+    cputsxy(METADEX,METADEY,"GAME OVER");
+    getch();
+}
+
+
 // funcao que gera obstaculos
 //rand()%100+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem (poderia tirar o +1 mais eh mais intuivo)
 // pensar com um numero entre 1 e 100 do que com 0 e 99 em termos de porcentagem
@@ -497,6 +523,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
         testa_colisao(submarino,obstaculos);
         imprime_obstaculos(obstaculos);
     } while(sair==0 && submarino->vidas>0);
+    animacao_sem_vidas(submarino,obstaculos);
     clrscr();
 }
 
