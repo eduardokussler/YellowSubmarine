@@ -45,6 +45,22 @@
 #define DESTRUIRSUBINIMIGO 10
 #define PONTUACAOPORTEMPOSUBMERGIDO 1
 
+// constantes para teclado
+#define TECLASAUXILIARES -32
+#define ENTER 13
+#define ESC 27
+#define SETABAIXO 80
+#define SETACIMA 72
+#define SETAESQUERDA 75
+#define SETADIREITA 77
+
+// constantes para menu
+#define NOVOJOGO 0
+#define CARREGARJOGO 1
+#define RECORDES 2
+#define CREDITOS 3
+#define SAIR 4
+
 
 void menu();
 void creditos();
@@ -349,7 +365,7 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
             Sleep(100);
             apaga_submarino(*submarino);
         }
-        submarino->posicao.Y+=3;
+        submarino->posicao.Y+=ALTURASUBMARINO;
     }
     clrscr();
     cputsxy(METADEX,METADEY,"GAME OVER");
@@ -456,17 +472,17 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
             //fflush(stdin);
             a = getch();
             switch(a) {
-                case -32:
+                case TECLASAUXILIARES:
                     a = getch();
                     switch(a) {// deixei as funcoes de apagar e imprimir dentro dos ifs para n ficar imprimindo e apagando quando desnecessario
-                        case 72:
+                        case SETACIMA:
                             if (submarino->posicao.Y-2*ALTURASUBMARINO+1>LINHA1) {
                                 apaga_submarino(*submarino);
                                 submarino->posicao.Y -=ALTURASUBMARINO;
                                 imprime_submarino(*submarino);
                             }
                             break;
-                        case 80:
+                        case SETABAIXO:
                             if (submarino->posicao.Y+ALTURASUBMARINO<LINHA2) {
                                 apaga_submarino(*submarino);
                                 submarino->posicao.Y +=ALTURASUBMARINO;
@@ -474,7 +490,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
                             }
                             //y +=1;
                             break;
-                        case 77:
+                        case SETADIREITA:
                             // se deseja pular if (submarino->posicao.X+2*COMPRIMENTOSUBMARINO<COLUNA2) {
                             // se n deseja pular if (submarino->posicao.X+COMPRIMENTOSUBMARINO+1<COLUNA2) {
                             if (submarino->posicao.X+COMPRIMENTOSUBMARINO+CAMINHOPORLOOP-1<COLUNA2) {
@@ -492,7 +508,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
                             }
                             //x +=1;
                             break;
-                        case 75:
+                        case SETAESQUERDA:
                             // se deseja pular if (submarino->posicao.X-COMPRIMENTOSUBMARINO>COLUNA1) {
                             // se n deseja pular if (submarino->posicao.X-1>COLUNA1) {
                             if (submarino->posicao.X-CAMINHOPORLOOP>COLUNA1) {
@@ -578,6 +594,66 @@ void menu(){
             creditos();
             break;
         case '5':
+            clrscr();
+            printf("Espero que volte logo...");
+            exit(0);
+            break;
+
+    }
+}
+
+
+void le_tecla_menu (char *tecla, int *opcao_atual){// funcao que deve ser usada com menu2
+    *tecla = getch();
+    if(*tecla==TECLASAUXILIARES) {
+        *tecla = getch();
+        if (*tecla==SETACIMA) {// se for cima e tiver como ir para cima vai para cima
+            if(*opcao_atual!=NOVOJOGO) {
+                putchxy(METADEX-1,METADEY+*opcao_atual,'\0');
+                (*opcao_atual)--;
+                putchxy(METADEX-1,METADEY+*opcao_atual,'|');
+            }
+        } else if (*tecla==SETABAIXO) {// se for baixo e tiver como ir para baixo vai para baixo
+            if(*opcao_atual!=SAIR) {
+                putchxy(METADEX-1,METADEY+*opcao_atual,'\0');
+                (*opcao_atual)++;
+                putchxy(METADEX-1,METADEY+*opcao_atual,'|');
+            }
+        }
+    }
+}
+
+void menu2(){// outro menu
+    char resp;
+    int opcao = 0;// novo jogo
+    clrscr();
+    imprime_moldura();
+    cputsxy(METADEX, METADEY, "Novo Jogo");
+    cputsxy(METADEX, METADEY + 1, "Carregar Jogo");
+    cputsxy(METADEX, METADEY + 2, "Recordes");
+    cputsxy(METADEX, METADEY + 3, "Creditos");
+    cputsxy(METADEX, METADEY + 4, "Sair");
+    putchxy(METADEX-1,METADEY,'|');// print inicial
+    do {// fica atualizando posicao ate que de enter
+        le_tecla_menu(&resp,&opcao);
+    } while(resp!=ENTER);
+
+    switch(opcao){// ve qual a opcao que deu enter
+        case 0:
+            //novoJogo();
+            //imprime_moldura();
+            //move_sub(&sub);
+            break;
+        case 1:
+            //carregaJogo();
+            break;
+        case 2:
+            //recordes();
+            break;
+        case 3:
+            creditos();
+            break;
+        case 4:
             clrscr();
             printf("Espero que volte logo...");
             exit(0);
