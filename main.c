@@ -62,10 +62,6 @@
 #define SAIR 4
 
 
-void menu();
-void creditos();
-void proMeio();
-
 
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
 // se tem um ponteiro para a estrutura usa estrutura_pointeiro->atributo ex: ponteiro_para_submarino_do_kuss_kussler->orientacao
@@ -91,6 +87,13 @@ typedef struct obstaculo {
     int orientacao;// 1 direita 0 esquerda?
     // n botei a cor
 } OBSTACULO;
+
+
+void menu();
+void creditos();
+void proMeio();
+void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstaculos[]);
+void imprime_moldura();
 
 
 void missel_atualiza(int x,int y) {
@@ -454,7 +457,7 @@ void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
 // funcao move o submarino e os obstaculos
 // n vou comentar individualmente as condicoes para ver se o submarino atravessou a borda mas o raciocinio eh semelhante ao usado
 // para ver se o submarino inimigo fez a mesma coisa
-void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
+void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
     // passei por ponteiro para alterar no da funcao principal
 
     // quando apertar <- ou -> se estiver virado para o lado oposto ele apenas virara para o lado certo se
@@ -464,6 +467,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
     //      e vira para a direita nao ha como virar novamente para a esquerda
     char a;
     int sair = 0;
+    imprime_moldura();
     imprime_submarino(*submarino);// imprime o submarino inicialmente
     do {
         Sleep(100);// para dar um tempo entre loops
@@ -563,6 +567,12 @@ void imprime_moldura() {// imprime a moldura do jogo
 
 }
 
+void novo_jogo() {
+    OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
+    SUBMARINO sub = {{COLUNAINICIAL,LINHAINICIAL},DIREITA,3,30,0,0};
+    game_loop(&sub,obstaculos);
+}
+
 
 //funcao que colocar o cursor no meio da tela:
 //o parametro linha serve para deslocar o cursor
@@ -584,9 +594,7 @@ void menu(){
     resp = getch();
     switch(resp){
         case '1':
-            //novoJogo();
-            //imprime_moldura();
-            //move_sub(&sub);
+            novo_jogo();
             break;
         case '2':
             //carregaJogo();
@@ -629,46 +637,48 @@ void le_tecla_menu (char *tecla, int *opcao_atual){// funcao que deve ser usada 
 
 void menu2(){// outro menu
     char resp;
-    int opcao = 0;// novo jogo
-    clrscr();
-    imprime_moldura();
-    cputsxy(METADEX, METADEY, "Novo Jogo");
-    cputsxy(METADEX, METADEY + 1, "Carregar Jogo");
-    cputsxy(METADEX, METADEY + 2, "Recordes");
-    cputsxy(METADEX, METADEY + 3, "Creditos");
-    cputsxy(METADEX, METADEY + 4, "Sair");
-    putchxy(METADEX-1,METADEY,'|');// print inicial
-    do {// fica atualizando posicao ate que de enter
-        le_tecla_menu(&resp,&opcao);
-    } while(resp!=ENTER);
+    int opcao;// novo jogo
+    do {
+        opcao = 0;
+        clrscr();
+        imprime_moldura();
+        cputsxy(METADEX, METADEY, "Novo Jogo");
+        cputsxy(METADEX, METADEY + 1, "Carregar Jogo");
+        cputsxy(METADEX, METADEY + 2, "Recordes");
+        cputsxy(METADEX, METADEY + 3, "Creditos");
+        cputsxy(METADEX, METADEY + 4, "Sair");
+        putchxy(METADEX-1,METADEY,'|');// print inicial
+        do {// fica atualizando posicao ate que de enter
+            le_tecla_menu(&resp,&opcao);
+        } while(resp!=ENTER);
+        clrscr();// todas que chamar tem q limpar a tela
+        switch(opcao){// ve qual a opcao que deu enter
+            case NOVOJOGO:
+                novo_jogo();
+                //imprime_moldura();
+                //move_sub(&sub);
+                break;
+            case CARREGARJOGO:
+                //carregaJogo();
+                break;
+            case RECORDES:
+                //recordes();
+                break;
+            case CREDITOS:
+                creditos();
+                break;
+            case SAIR:
+                printf("Espero que volte logo...");
+                exit(0);
+                break;
 
-    switch(opcao){// ve qual a opcao que deu enter
-        case 0:
-            //novoJogo();
-            //imprime_moldura();
-            //move_sub(&sub);
-            break;
-        case 1:
-            //carregaJogo();
-            break;
-        case 2:
-            //recordes();
-            break;
-        case 3:
-            creditos();
-            break;
-        case 4:
-            clrscr();
-            printf("Espero que volte logo...");
-            exit(0);
-            break;
-
-    }
+        }
+    } while (opcao!=4);
 }
 
 void creditos(){
     char voltar;
-    clrscr();
+    //clrscr();
     imprime_moldura();
     cputsxy(METADEX, METADEY, "FEITO POR:");//ir para o meio da tela
     cputsxy(METADEX, METADEY + 1, "Eduardo Eugenio Kussler");
@@ -678,9 +688,9 @@ void creditos(){
     cputsxy(METADEX, METADEY + 7, "voltar ao menu principal");
     do{
         voltar = getch();
-    }while(voltar != 27);
+    }while(voltar != ESC);
     clrscr();
-    return menu();
+    //return menu();
 }
 
 //A função recebe as coordenadas do submarino e as de um obstaculo
@@ -733,6 +743,7 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
 
 
 int main() {
+    /*
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};// inicializa tudo com 0
     // o oxigenio depende do sleep entre os lacos
     // tem 30 segundos de oxigenio mas se o cada laço demora
@@ -745,6 +756,8 @@ int main() {
     //le_tecla_imprime2();
     //move_sub(&sub);
     imprime_moldura();
-    move_sub(&sub,obstaculos);
+    move_sub(&sub,obstaculos);*/
+
+    menu2();
     return 0;
 }
