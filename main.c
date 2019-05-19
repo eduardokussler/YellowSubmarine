@@ -468,6 +468,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
     do {
         Sleep(100);// para dar um tempo entre loops
         gera_obstaculos(obstaculos);// funcao que gera obstaculos nas posicoes que n tem obstaculos
+        apaga_obstaculos(obstaculos);// apaga os os obstaculos
         if (kbhit()) {
             //fflush(stdin);
             a = getch();
@@ -534,8 +535,10 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
         // depois que faz o comando do submarino apaga os obstaculos na tela e atualiza as posicoes dos obstaculos
         // dai testa se alguma dessas novas posicoes bate na tela, ou seja se o obstaculo atravessou a tela
         // se esse for o caso esse obstaculo desaparece e imprime os obstaculos que ainda nao atravessaram
+        /*
         apaga_obstaculos(obstaculos);
         imprime_submarino(*submarino);// gambiarra pro caso de um escapar do outro
+        */
         atualiza_obstaculos(obstaculos);
         testa_colisao(submarino,obstaculos);
         imprime_obstaculos(obstaculos);
