@@ -535,6 +535,7 @@ void move_sub(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com d
         // dai testa se alguma dessas novas posicoes bate na tela, ou seja se o obstaculo atravessou a tela
         // se esse for o caso esse obstaculo desaparece e imprime os obstaculos que ainda nao atravessaram
         apaga_obstaculos(obstaculos);
+        imprime_submarino(*submarino);// gambiarra pro caso de um escapar do outro
         atualiza_obstaculos(obstaculos);
         testa_colisao(submarino,obstaculos);
         imprime_obstaculos(obstaculos);
@@ -696,7 +697,7 @@ int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do su
         return 0;
     } else if(tipo == SUBMARINOINIMIGO){
         //
-        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO - 1) >= obstaculo.X) && (sub.X <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1) || 
+        if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO - 1) >= obstaculo.X) && (sub.X <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
         sub.X + COMPRIMENTOSUBMARINO - 1 <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
             return 1;
         }else{
