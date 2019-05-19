@@ -698,7 +698,6 @@ int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do su
     } else if(tipo == SUBMARINOINIMIGO){
         //
         if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO - 1) >= obstaculo.X) && (sub.X <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
-        sub.X + COMPRIMENTOSUBMARINO - 1 <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
             return 1;
         }else{
             return 0;
