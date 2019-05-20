@@ -584,6 +584,9 @@ void atualiza_oxigenio(SUBMARINO *submarino) {
             cputsxy(COLUNAOXIGENIO+11+submarino->oxigenio/10,LINHAINTERFACEINFERIOR+1," "); 
         }
         submarino->oxigenio--;
+        if (submarino->oxigenio==0) {
+            cputsxy(COLUNAOXIGENIO+11+submarino->oxigenio/10,LINHAINTERFACEINFERIOR+1," "); 
+        }
     } else if(submarino->oxigenio<OXIGENIOMAXIMO) {
         submarino->oxigenio++;
         if (submarino->oxigenio%10==0) {
