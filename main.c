@@ -69,7 +69,7 @@
 #define VIDASINICIAIS 3
 #define OXIGENIOMAXIMO 30
 #define COLUNAVIDAS COLUNA2-9
-#define COLUNAOXIGENIO COLUNA2-40-1
+#define COLUNAOXIGENIO COLUNA2-40-1-1
 
 
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
@@ -545,47 +545,69 @@ void imprime_interface_mergulhadores(int mergulhadores) {
     int j;
     for (i = 0; i<mergulhadores;i++) {
        cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*i,LINHAINTERFACEINFERIOR+1,">->O"); 
-    }
-    for (j = i+1; j<MERGULHADORESMAXIMOS;j++) {
+    }/*
+    for (j = i; j<MERGULHADORESMAXIMOS;j++) {
        cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*j,LINHAINTERFACEINFERIOR+1,"    "); 
-    }
+    }*/
 }
 
-void imprime_pontuacao(int pontuacao) {
-    gotoxy(COLUNA1+1,LINHAINTERFACESUPERIOR-1);
-    printf("Pontos: %d",pontuacao);
+void atualiza_interface_mergulhadores(int mergulhadores) {
+    cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*mergulhadores,LINHAINTERFACEINFERIOR+1,"    "); 
+}
+
+
+
+void atualiza_pontuacao(int pontuacao) {
+    cputsxy(COLUNA1+9,LINHAINTERFACESUPERIOR-1,"               ");
+    gotoxy(COLUNA1+9,LINHAINTERFACESUPERIOR-1);
+    printf("%d",pontuacao);
     //cputsxy(COLUNA1+1,LINHAINTERFACESUPERIOR-1,);
 }
 
+void atualiza_vidas(int vidas) {
+    cputsxy(COLUNAVIDAS+3*vidas,LINHAINTERFACESUPERIOR-1,"  "); 
+}
+
+void atualiza_oxigenio(int oxigenio) {
+    cputsxy(COLUNAOXIGENIO+11+oxigenio,LINHAINTERFACEINFERIOR+1," "); 
+}
+    
+
 void imprime_vidas(int vidas) {
     int i;
-    int j;
+    //int j;
     for (i = 0; i<vidas;i++) {
        cputsxy(COLUNAVIDAS+3*i,LINHAINTERFACESUPERIOR-1,"<3 "); 
-    }
-    for (j = i+1; j<VIDASINICIAIS;j++) {
+    }/*
+    for (j = i; j<VIDASINICIAIS;j++) {
        cputsxy(COLUNAVIDAS+3*j,LINHAINTERFACESUPERIOR-1,"  "); 
-    }
+    }*/
 }
     
 void imprime_oxigenio(int oxigenio) {
     int i;
-    int j;
-    cputsxy(COLUNAOXIGENIO,LINHAINTERFACEINFERIOR+1,"Oxigenio: ");
+    //int j;
     for (i = 0; i<oxigenio;i++) {
-       cputsxy(COLUNAOXIGENIO+10+i,LINHAINTERFACEINFERIOR+1,"|"); 
+       cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|"); 
     }
-    for (j = i+1; j<OXIGENIOMAXIMO;j++) {
-       cputsxy(COLUNAOXIGENIO+10+j,LINHAINTERFACEINFERIOR+1,"|"); 
-    }
+    /*
+    for (j = i; j<OXIGENIOMAXIMO;j++) {
+       cputsxy(COLUNAOXIGENIO+11+j,LINHAINTERFACEINFERIOR+1,"|"); 
+    }*/
+}
+
+void imprime_interface_auxiliar() {
+    putchxy(COLUNA2-1,LINHAINTERFACEINFERIOR+1,']');
+    cputsxy(COLUNAOXIGENIO,LINHAINTERFACEINFERIOR+1,"Oxigenio: [");
+    gotoxy(COLUNA1+1,LINHAINTERFACESUPERIOR-1);
+    printf("Pontos: 0");
 }
     
 
 void imprime_interface(SUBMARINO *submarino) {
-
+    imprime_interface_auxiliar();
     imprime_oxigenio(submarino->oxigenio);
     imprime_vidas(submarino->vidas);
-    imprime_pontuacao(submarino->pontuacao);
     imprime_interface_mergulhadores(submarino->mergulhadores);
 
 }
@@ -824,6 +846,7 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
         if(colisao){
             if(obstaculos[i].tipo == SUBMARINOINIMIGO){
                 (*submarino).vidas--;
+                atualiza_vidas(submarino->vidas);
                 if((*submarino).vidas){
                     apaga_submarino(*submarino);
                     submarino->posicao.X = COLUNAINICIAL;
