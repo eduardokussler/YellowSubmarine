@@ -545,7 +545,7 @@ void imprime_interface_mergulhadores() {
     for (i = 0; i<mergulhadores;i++) {
        cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*i,LINHAINTERFACEINFERIOR+1,">->O"); 
     }*/
-    for (j = 0; j<MERGULHADORESMAXIMOS;j++) {
+    for (j = 1; j<=MERGULHADORESMAXIMOS;j++) {
        cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*j,LINHAINTERFACEINFERIOR+1,"    "); 
     }
 }
@@ -884,7 +884,9 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
                     apaga_submarino(*submarino);
                     submarino->posicao.X = COLUNAINICIAL;
                     submarino->posicao.Y = LINHAINICIAL;
+                    submarino->orientacao = DIREITA;
                     submarino->oxigenio = OXIGENIOMAXIMO;
+                    submarino->mergulhadores = 0;
                     imprime_oxigenio();
                     imprime_submarino(*submarino);
                     imprime_agua();
