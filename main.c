@@ -799,7 +799,7 @@ void menu2(){// outro menu
 void creditos(){
     char voltar;
     //clrscr();
-    imprime_moldura();
+    imprime_moldura_menu();
     cputsxy(METADEX, METADEY, "FEITO POR:");//ir para o meio da tela
     cputsxy(METADEX, METADEY + 1, "Eduardo Eugenio Kussler");
     cputsxy(METADEX, METADEY + 2, "E");
