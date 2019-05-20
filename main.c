@@ -537,22 +537,22 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos) {
                             break;
                     }
             }
-        }   
+        }
 }
 
 void imprime_interface_mergulhadores(int mergulhadores) {
     int i;
     int j;
     for (i = 0; i<mergulhadores;i++) {
-       cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*i,LINHAINTERFACEINFERIOR+1,">->O"); 
+       cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*i,LINHAINTERFACEINFERIOR+1,">->O");
     }/*
     for (j = i; j<MERGULHADORESMAXIMOS;j++) {
-       cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*j,LINHAINTERFACEINFERIOR+1,"    "); 
+       cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*j,LINHAINTERFACEINFERIOR+1,"    ");
     }*/
 }
 
 void atualiza_interface_mergulhadores(int mergulhadores) {
-    cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*mergulhadores,LINHAINTERFACEINFERIOR+1,"    "); 
+    cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*mergulhadores,LINHAINTERFACEINFERIOR+1,"    ");
 }
 
 
@@ -565,34 +565,34 @@ void atualiza_pontuacao(int pontuacao) {
 }
 
 void atualiza_vidas(int vidas) {
-    cputsxy(COLUNAVIDAS+3*vidas,LINHAINTERFACESUPERIOR-1,"  "); 
+    cputsxy(COLUNAVIDAS+3*vidas,LINHAINTERFACESUPERIOR-1,"  ");
 }
 
 void atualiza_oxigenio(int oxigenio) {
-    cputsxy(COLUNAOXIGENIO+11+oxigenio,LINHAINTERFACEINFERIOR+1," "); 
+    cputsxy(COLUNAOXIGENIO+11+oxigenio,LINHAINTERFACEINFERIOR+1," ");
 }
-    
+
 
 void imprime_vidas(int vidas) {
     int i;
     //int j;
     for (i = 0; i<vidas;i++) {
-       cputsxy(COLUNAVIDAS+3*i,LINHAINTERFACESUPERIOR-1,"<3 "); 
+       cputsxy(COLUNAVIDAS+3*i,LINHAINTERFACESUPERIOR-1,"<3 ");
     }/*
     for (j = i; j<VIDASINICIAIS;j++) {
-       cputsxy(COLUNAVIDAS+3*j,LINHAINTERFACESUPERIOR-1,"  "); 
+       cputsxy(COLUNAVIDAS+3*j,LINHAINTERFACESUPERIOR-1,"  ");
     }*/
 }
-    
+
 void imprime_oxigenio(int oxigenio) {
     int i;
     //int j;
     for (i = 0; i<oxigenio;i++) {
-       cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|"); 
+       cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|");
     }
     /*
     for (j = i; j<OXIGENIOMAXIMO;j++) {
-       cputsxy(COLUNAOXIGENIO+11+j,LINHAINTERFACEINFERIOR+1,"|"); 
+       cputsxy(COLUNAOXIGENIO+11+j,LINHAINTERFACEINFERIOR+1,"|");
     }*/
 }
 
@@ -602,7 +602,7 @@ void imprime_interface_auxiliar() {
     gotoxy(COLUNA1+1,LINHAINTERFACESUPERIOR-1);
     printf("Pontos: 0");
 }
-    
+
 
 void imprime_interface(SUBMARINO *submarino) {
     imprime_interface_auxiliar();
@@ -803,7 +803,7 @@ void creditos(){
     cputsxy(METADEX, METADEY, "FEITO POR:");//ir para o meio da tela
     cputsxy(METADEX, METADEY + 1, "Eduardo Eugenio Kussler");
     cputsxy(METADEX, METADEY + 2, "E");
-    cputsxy(METADEX, METADEY + 3, "Gabriel Couto");
+    cputsxy(METADEX, METADEY + 3, "Gabriel Couto Domingues");
     cputsxy(METADEX, METADEY + 6, "Pressione ESC para ");
     cputsxy(METADEX, METADEY + 7, "voltar ao menu principal");
     do{
@@ -859,7 +859,7 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
                 obstaculos[i].tipo = SEMOBSTACULO;
                 if (submarino->mergulhadores<3) {
                     submarino->mergulhadores++;
-                }                
+                }
                 imprime_submarino(*submarino);
             }
         }
