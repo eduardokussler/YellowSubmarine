@@ -537,7 +537,7 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos) {
                             break;
                     }
             }
-        }   
+        }
 }
 
 void imprime_interface_mergulhadores() {
@@ -574,7 +574,7 @@ void atualiza_pontuacao(SUBMARINO *submarino) {
 }
 
 void atualiza_vidas(int vidas) {
-    cputsxy(COLUNAVIDAS+3*vidas,LINHAINTERFACESUPERIOR-1,"  "); 
+    cputsxy(COLUNAVIDAS+3*vidas,LINHAINTERFACESUPERIOR-1,"  ");
 }
 
 void atualiza_oxigenio(SUBMARINO *submarino) {
@@ -591,7 +591,7 @@ void atualiza_oxigenio(SUBMARINO *submarino) {
         }
     }
 }
-    
+
 
 void imprime_vidas() {
     int i;
@@ -600,7 +600,7 @@ void imprime_vidas() {
        cputsxy(COLUNAVIDAS+3*i,LINHAINTERFACESUPERIOR-1,"<3 "); 
     }/*
     for (j = i; j<VIDASINICIAIS;j++) {
-       cputsxy(COLUNAVIDAS+3*j,LINHAINTERFACESUPERIOR-1,"  "); 
+       cputsxy(COLUNAVIDAS+3*j,LINHAINTERFACESUPERIOR-1,"  ");
     }*/
 }
     
@@ -615,7 +615,7 @@ void imprime_oxigenio() {
     }
     /*
     for (j = i; j<OXIGENIOMAXIMO;j++) {
-       cputsxy(COLUNAOXIGENIO+11+j,LINHAINTERFACEINFERIOR+1,"|"); 
+       cputsxy(COLUNAOXIGENIO+11+j,LINHAINTERFACEINFERIOR+1,"|");
     }*/
 }
 
@@ -832,11 +832,11 @@ void menu2(){// outro menu
 void creditos(){
     char voltar;
     //clrscr();
-    imprime_moldura();
+    imprime_moldura_menu();
     cputsxy(METADEX, METADEY, "FEITO POR:");//ir para o meio da tela
     cputsxy(METADEX, METADEY + 1, "Eduardo Eugenio Kussler");
     cputsxy(METADEX, METADEY + 2, "E");
-    cputsxy(METADEX, METADEY + 3, "Gabriel Couto");
+    cputsxy(METADEX, METADEY + 3, "Gabriel Couto Domingues");
     cputsxy(METADEX, METADEY + 6, "Pressione ESC para ");
     cputsxy(METADEX, METADEY + 7, "voltar ao menu principal");
     do{
