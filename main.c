@@ -884,6 +884,8 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
                     apaga_submarino(*submarino);
                     submarino->posicao.X = COLUNAINICIAL;
                     submarino->posicao.Y = LINHAINICIAL;
+                    submarino->oxigenio = OXIGENIOMAXIMO;
+                    imprime_oxigenio();
                     imprime_submarino(*submarino);
                     imprime_agua();
                 }
