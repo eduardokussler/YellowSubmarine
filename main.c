@@ -485,7 +485,7 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos) {
                             }
                             break;
                         case SETABAIXO:
-                            if (submarino->posicao.Y+ALTURASUBMARINO<LINHA2) {
+                            if (submarino->posicao.Y+ALTURASUBMARINO<LINHAINTERFACEINFERIOR) {
                                 apaga_submarino(*submarino);
                                 if (submarino->posicao.Y==LINHAINICIAL) {
                                     imprime_agua();
