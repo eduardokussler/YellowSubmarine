@@ -603,11 +603,14 @@ void atualiza_vidas(INTERFACEJOGO *interface_jogo) {
 }
 
 void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
-
+        int i;
         if ((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO<(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// imprime oxigenio
             cputsxy(COLUNAOXIGENIO+11+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1,"|");
         } else if((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO>(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// deletar oxigenio
-            cputsxy(COLUNAOXIGENIO+11-1+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1," ");
+            //cputsxy(COLUNAOXIGENIO+11-1+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1," ");
+            for (i = (interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO; i > (submarino->oxigenio+9)/BLOCOSDEOXIGENIO ;i--) {
+                cputsxy(COLUNAOXIGENIO+11-1+i,LINHAINTERFACEINFERIOR+1," ");
+            }
         }
 
         /*
