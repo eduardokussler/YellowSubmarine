@@ -18,7 +18,7 @@
 #define PORCENTAGEMMERGULHADORES 30// porcentagem de spawn de mergulhadores
 #define PORCENTAGEMSUBMARINOSINIMIGOS 50// porcentagem de spawn dos submarinos inimigos
 
-#define TEMPODELOOP 50
+#define TEMPODELOOP 100
 
 #define LINHAINTERFACESUPERIOR LINHA1+2
 #define LINHAINTERFACEINFERIOR LINHA2-2
@@ -69,8 +69,8 @@
 
 #define MERGULHADORESMAXIMOS 3
 #define VIDASINICIAIS 3
-#define OXIGENIOMAXIMO 30*1000/TEMPODELOOP
-#define BLOCOSDEOXIGENIO 1000/TEMPODELOOP
+#define OXIGENIOMAXIMO (30*1000/TEMPODELOOP)
+#define BLOCOSDEOXIGENIO (1000/TEMPODELOOP)
 #define COLUNAVIDAS COLUNA2-9
 #define COLUNAOXIGENIO COLUNA2-40-1-1
 
@@ -558,22 +558,22 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos) {
         }
 }
 
-void imprime_interface_mergulhadores() {
+void imprime_mergulhadores_vazio() {
     int j;/*
     for (i = 0; i<mergulhadores;i++) {
        cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*i,LINHAINTERFACEINFERIOR+1,">->O");
     }*/
     for (j = 0; j<MERGULHADORESMAXIMOS;j++) {
-       cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*j,LINHAINTERFACEINFERIOR+1,"    ");
+       cputsxy(COLUNA1+1+(COMPRIMENTOMERGULHADOR+1)*j,LINHAINTERFACEINFERIOR+1,"     ");
     }
 }
 
 void atualiza_interface_mergulhadores(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
     if (submarino->posicao.Y==LINHAINICIAL) {
-        imprime_interface_mergulhadores();
+        imprime_mergulhadores_vazio();
         //submarino->mergulhadores = 0;
     } else {
-        cputsxy(COLUNA1+1+COMPRIMENTOMERGULHADOR*interface_jogo->mergulhadores,LINHAINTERFACEINFERIOR+1,">->O");
+        cputsxy(COLUNA1+1+(COMPRIMENTOMERGULHADOR+1)*interface_jogo->mergulhadores,LINHAINTERFACEINFERIOR+1,">->O ");
     }
 }
 
@@ -604,10 +604,10 @@ void atualiza_vidas(INTERFACEJOGO *interface_jogo) {
 
 void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
 
-        if (interface_jogo->oxigenio/BLOCOSDEOXIGENIO<submarino->oxigenio/BLOCOSDEOXIGENIO) {// imprime oxigenio
-            cputsxy(COLUNAOXIGENIO+11+interface_jogo->oxigenio/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1,"|");
-        } else {// deletar oxigenio
-            cputsxy(COLUNAOXIGENIO+11+interface_jogo->oxigenio/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1," ");
+        if ((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO<(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// imprime oxigenio
+            cputsxy(COLUNAOXIGENIO+11+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1,"|");
+        } else if((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO>(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// deletar oxigenio
+            cputsxy(COLUNAOXIGENIO+11-1+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1," ");
         }
 
         /*
