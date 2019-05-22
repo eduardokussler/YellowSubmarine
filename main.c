@@ -84,7 +84,7 @@
 
 // to fingindo q sei o q to fazendo
 // parece que j� tem o tipo COORDENADA na conio
-typedef struct submarino {
+typedef struct  {
     COORD posicao;
     int orientacao;// 1 direita 0 esquerda?
     int vidas;
@@ -94,7 +94,7 @@ typedef struct submarino {
     // n botei a cor
 } SUBMARINO;
 
-typedef struct obstaculo {
+typedef struct  {
     int tipo;//1: submarino 2: mergulhador
     COORD posicao;
     int orientacao;// 1 direita 0 esquerda?
@@ -102,7 +102,7 @@ typedef struct obstaculo {
 } OBSTACULO;
 
 
-typedef struct interface_jogo {
+typedef struct  {
     int vidas;
     int mergulhadores;
     int oxigenio;
@@ -110,7 +110,7 @@ typedef struct interface_jogo {
 } INTERFACEJOGO;
 
 
-typedef struct torpedo {
+typedef struct  {
     COORD posicao;
     int direcao;
     int status;
@@ -401,7 +401,7 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
                 }
             }
             imprime_submarino(*submarino);
-            Sleep(100);
+            Sleep(TEMPODELOOP);
             apaga_submarino(*submarino);
         }
         submarino->posicao.Y+=ALTURASUBMARINO;
@@ -605,7 +605,10 @@ void atualiza_vidas(INTERFACEJOGO *interface_jogo) {
 void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
         int i;
         if ((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO<(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// imprime oxigenio
-            cputsxy(COLUNAOXIGENIO+11+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1,"|");
+            //cputsxy(COLUNAOXIGENIO+11+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1,"|");
+            for (i = (interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO; i < (submarino->oxigenio+9)/BLOCOSDEOXIGENIO ;i++) {
+                cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|");
+            }
         } else if((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO>(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// deletar oxigenio
             //cputsxy(COLUNAOXIGENIO+11-1+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1," ");
             for (i = (interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO; i > (submarino->oxigenio+9)/BLOCOSDEOXIGENIO ;i--) {
@@ -627,6 +630,27 @@ void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
         }*/
 }
 
+
+void respawn_submarino(SUBMARINO *submarino) {
+    if (submarino->vidas>0) {
+        apaga_submarino(*submarino);
+        submarino->posicao.X = COLUNAINICIAL;
+        submarino->posicao.Y = LINHAINICIAL;
+        submarino->orientacao = DIREITA;
+        submarino->oxigenio = OXIGENIOMAXIMO;
+        submarino->mergulhadores = 0;
+        imprime_submarino(*submarino);
+        imprime_agua();
+    }
+}
+
+
+void testa_morte_oxigenio (SUBMARINO *submarino) {
+    if (submarino->oxigenio==0 && submarino->vidas>0) {
+        submarino->vidas--;
+        respawn_submarino(submarino);
+    }
+}
 
 void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
@@ -744,9 +768,10 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
         imprime_obstaculos(obstaculos);
         resgatou_mergulhadores(submarino);
         atualiza_oxigenio_submarino(submarino);
+        testa_morte_oxigenio (submarino);
         atualiza_interface(submarino,&interface_jogo);
-    } while(a!=ESC && submarino->vidas>0 && submarino->oxigenio>0);
-    if (submarino->vidas==0 || submarino->oxigenio==0) {
+    } while(a!=ESC && submarino->vidas>0);
+    if (submarino->vidas==0) {
         animacao_sem_vidas(submarino,obstaculos);
     }
     clrscr();
@@ -946,7 +971,10 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
             if(obstaculos[i].tipo == SUBMARINOINIMIGO){
                 (*submarino).vidas--;
                 //atualiza_vidas(submarino->vidas);
+                respawn_submarino(submarino);
+                /*
                 if((*submarino).vidas){
+
                     apaga_submarino(*submarino);
                     submarino->posicao.X = COLUNAINICIAL;
                     submarino->posicao.Y = LINHAINICIAL;
@@ -956,7 +984,8 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
                     //imprime_oxigenio();
                     imprime_submarino(*submarino);
                     imprime_agua();
-                }
+                    respawn_submarino(submarino);
+                }*/
             }else if(obstaculos[i].tipo == MERGULHADOR){
                 apaga_mergulhador(obstaculos[i]);
                 obstaculos[i].tipo = SEMOBSTACULO;
@@ -990,7 +1019,3 @@ int main() {
     menu2();
     return 0;
 }
-
-
-
-
