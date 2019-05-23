@@ -15,7 +15,7 @@
 #define COLUNAINICIAL 36// coluna inicial do submarino controlado pelo jogador
 // provavelmente apenas uma das de baixo seram uteis pois se sei a porcentagem de um posso usar a de outro
 // no codigo so usei porcentagme de mergulhadores
-#define PORCENTAGEMMERGULHADORES 30// porcentagem de spawn de mergulhadores
+#define PORCENTAGEMMERGULHADORES 100// porcentagem de spawn de mergulhadores
 #define PORCENTAGEMSUBMARINOSINIMIGOS 50// porcentagem de spawn dos submarinos inimigos
 
 #define TEMPODELOOP 100
@@ -60,6 +60,8 @@
 #define SETAESQUERDA 75
 #define SETADIREITA 77
 
+#define SEGUNDO 1000//milissegundos
+
 // constantes para menu
 #define NOVOJOGO 0
 #define CARREGARJOGO 1
@@ -69,8 +71,8 @@
 
 #define MERGULHADORESMAXIMOS 3
 #define VIDASINICIAIS 3
-#define OXIGENIOMAXIMO (30*1000/TEMPODELOOP)
-#define BLOCOSDEOXIGENIO (1000/TEMPODELOOP)
+#define OXIGENIOMAXIMO 30
+//#define BLOCOSDEOXIGENIO (1000/TEMPODELOOP)
 #define COLUNAVIDAS COLUNA2-9
 #define COLUNAOXIGENIO COLUNA2-40-1-1
 
@@ -91,6 +93,8 @@ typedef struct  {
     int oxigenio;
     int pontuacao;
     int mergulhadores;
+    unsigned long int tempo;
+    unsigned long int tempo_agua;
     // n botei a cor
 } SUBMARINO;
 
@@ -604,14 +608,14 @@ void atualiza_vidas(INTERFACEJOGO *interface_jogo) {
 
 void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
         int i;
-        if ((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO<(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// imprime oxigenio
+        if ((interface_jogo->oxigenio)<(submarino->oxigenio)) {// imprime oxigenio
             //cputsxy(COLUNAOXIGENIO+11+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1,"|");
-            for (i = (interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO; i < (submarino->oxigenio+9)/BLOCOSDEOXIGENIO ;i++) {
+            for (i = interface_jogo->oxigenio; i < submarino->oxigenio ;i++) {
                 cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|");
             }
-        } else if((interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO>(submarino->oxigenio+9)/BLOCOSDEOXIGENIO) {// deletar oxigenio
+        } else if((interface_jogo->oxigenio)>(submarino->oxigenio)) {// deletar oxigenio
             //cputsxy(COLUNAOXIGENIO+11-1+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1," ");
-            for (i = (interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO; i > (submarino->oxigenio+9)/BLOCOSDEOXIGENIO ;i--) {
+            for (i = interface_jogo->oxigenio; i > submarino->oxigenio ;i--) {
                 cputsxy(COLUNAOXIGENIO+11-1+i,LINHAINTERFACEINFERIOR+1," ");
             }
         }
@@ -654,11 +658,36 @@ void testa_morte_oxigenio (SUBMARINO *submarino) {
 
 void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
+       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0) {
+            submarino->oxigenio--;
+        } else if (submarino->tempo_agua==0) {
+            submarino->tempo_agua = submarino->tempo;
+        }
+    } else if (submarino->oxigenio<OXIGENIOMAXIMO) {
+        if (submarino->tempo_agua!=0) {
+            submarino->tempo_agua==0;
+        }
+        submarino->oxigenio = OXIGENIOMAXIMO;
+    }/*
+    if (submarino->posicao.Y!=LINHAINICIAL) {
         submarino->oxigenio--;
     } else if (submarino->oxigenio<OXIGENIOMAXIMO) {
         submarino->oxigenio++;
+    }*/
+}
+
+void atualiza_pontuacao_submerso(SUBMARINO *submarino) {
+    if (submarino->posicao.Y!=LINHAINICIAL) {
+       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0) {
+            submarino->pontuacao++;
+       }
     }
 }
+
+void atualiza_tempo (SUBMARINO *submarino ) {
+    submarino->tempo += TEMPODELOOP;
+}
+
 
 void imprime_vidas(INTERFACEJOGO *interface_jogo) {
     int i;
@@ -677,7 +706,7 @@ void imprime_oxigenio(INTERFACEJOGO *interface_jogo) {
     int oxigenio = 30;
     putchxy(COLUNA2-1,LINHAINTERFACEINFERIOR+1,']');
     cputsxy(COLUNAOXIGENIO,LINHAINTERFACEINFERIOR+1,"Oxigenio: [");
-    for (i = 0; i<OXIGENIOMAXIMO/BLOCOSDEOXIGENIO;i++) {
+    for (i = 0; i<OXIGENIOMAXIMO;i++) {
        cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|");
     }
     /*
@@ -752,10 +781,11 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
     imprime_interface(&interface_jogo);
     do {
         Sleep(TEMPODELOOP);// para dar um tempo entre loops
+        atualiza_tempo (submarino);
         gera_obstaculos(obstaculos);// funcao que gera obstaculos nas posicoes que n tem obstaculos
         apaga_obstaculos(obstaculos);// apaga os os obstaculos
         switch_game_loop(&a,submarino,obstaculos);
-        atualiza_interface(submarino,&interface_jogo);
+        //atualiza_interface(submarino,&interface_jogo);
         // depois que faz o comando do submarino apaga os obstaculos na tela e atualiza as posicoes dos obstaculos
         // dai testa se alguma dessas novas posicoes bate na tela, ou seja se o obstaculo atravessou a tela
         // se esse for o caso esse obstaculo desaparece e imprime os obstaculos que ainda nao atravessaram
@@ -768,8 +798,10 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
         imprime_obstaculos(obstaculos);
         resgatou_mergulhadores(submarino);
         atualiza_oxigenio_submarino(submarino);
-        testa_morte_oxigenio (submarino);
+        atualiza_pontuacao_submerso(submarino);
         atualiza_interface(submarino,&interface_jogo);
+        testa_morte_oxigenio (submarino);
+        //atualiza_interface(submarino,&interface_jogo);
     } while(a!=ESC && submarino->vidas>0);
     if (submarino->vidas==0) {
         animacao_sem_vidas(submarino,obstaculos);
@@ -974,7 +1006,6 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
                 respawn_submarino(submarino);
                 /*
                 if((*submarino).vidas){
-
                     apaga_submarino(*submarino);
                     submarino->posicao.X = COLUNAINICIAL;
                     submarino->posicao.Y = LINHAINICIAL;
