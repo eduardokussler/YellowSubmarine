@@ -890,6 +890,22 @@ void menu(){
     }
 }
 
+void imprime_titulo() {
+    int i = 20;
+    int j = 13;
+    textcolor(YELLOW);
+    cputsxy(2+i,2, "___ ________ ____  ____  _____ __  __ ");
+    cputsxy(2+i,3, "\\  |  /   __/  _/ /  _/ /  _  /   /  \\  ");
+    cputsxy(2+i,4, " |   ||   __|  |--|  |--|  |  |  /\\  |  ");
+    cputsxy(2+i,5, " \\___/\\_____\\_____\\_____\\_____\\__/\\__/");
+
+    cputsxy(2+j,6, " _____ __ __ _____ __  __ _____ _____ ___ _____ _____ ");
+    cputsxy(2+j,7, "/  ___/  |  /  _  /  \\/  /  _  /  _  /___/  _  /   __\\");
+    cputsxy(2+j,8, "|___  |  |  |  _  |  \\/  |  _  |  _  |   |  |  |   __|");
+    cputsxy(2+j,9, "<_____\\_____\\_____\\__ \\__\\__|__\\__|\\_\\___\\__|__\\_____/");
+    textcolor(WHITE);
+}
+
 
 void le_tecla_menu (char *tecla, int *opcao_atual){// funcao que deve ser usada com menu2
     *tecla = getch();
@@ -918,6 +934,7 @@ void menu2(){// outro menu
         opcao = 0;
         clrscr();
         imprime_moldura_menu();
+        imprime_titulo();
         cputsxy(METADEX, METADEY, "Novo Jogo");
         cputsxy(METADEX, METADEY + 1, "Carregar Jogo");
         cputsxy(METADEX, METADEY + 2, "Recordes");
