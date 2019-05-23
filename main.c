@@ -15,7 +15,7 @@
 #define COLUNAINICIAL 36// coluna inicial do submarino controlado pelo jogador
 // provavelmente apenas uma das de baixo seram uteis pois se sei a porcentagem de um posso usar a de outro
 // no codigo so usei porcentagme de mergulhadores
-#define PORCENTAGEMMERGULHADORES 100// porcentagem de spawn de mergulhadores
+#define PORCENTAGEMMERGULHADORES 30// porcentagem de spawn de mergulhadores
 #define PORCENTAGEMSUBMARINOSINIMIGOS 50// porcentagem de spawn dos submarinos inimigos
 
 #define TEMPODELOOP 100
@@ -658,7 +658,7 @@ void testa_morte_oxigenio (SUBMARINO *submarino) {
 
 void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
-       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0) {
+       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
             submarino->oxigenio--;
         } else if (submarino->tempo_agua==0) {
             submarino->tempo_agua = submarino->tempo;
@@ -678,7 +678,7 @@ void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
 
 void atualiza_pontuacao_submerso(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
-       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0) {
+       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
             submarino->pontuacao++;
        }
     }
