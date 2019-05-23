@@ -18,7 +18,7 @@
 #define PORCENTAGEMMERGULHADORES 30// porcentagem de spawn de mergulhadores
 #define PORCENTAGEMSUBMARINOSINIMIGOS 50// porcentagem de spawn dos submarinos inimigos
 
-#define TEMPODELOOP 100
+#define TEMPODELOOP 70
 
 #define LINHAINTERFACESUPERIOR LINHA1+2
 #define LINHAINTERFACEINFERIOR LINHA2-2
@@ -658,7 +658,8 @@ void testa_morte_oxigenio (SUBMARINO *submarino) {
 
 void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
-       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
+        //if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
+       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO<TEMPODELOOP && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
             submarino->oxigenio--;
         } else if (submarino->tempo_agua==0) {
             submarino->tempo_agua = submarino->tempo;
@@ -678,7 +679,8 @@ void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
 
 void atualiza_pontuacao_submerso(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
-       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
+        //if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
+       if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO<TEMPODELOOP && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
             submarino->pontuacao++;
        }
     }
