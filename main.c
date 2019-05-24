@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define NUMOBSTACULOS 5// de 6 foi pra 5 pra ter espaco pra botar informacoes na tela
+#define NUMOBSTACULOS 8// de 6 foi pra 5 pra ter espaco pra botar informacoes na tela
 #define LINHA1 1// linha inicial da moldura
 #define LINHA2 25// linha final da moldura
 #define COLUNA1 1// coluna inicial da moldura
@@ -25,7 +25,7 @@
 
 // talvez seja util mudar os valores das constantes abaixo e ajeitar o codigo
 // ajeitar para mostrar a altura em si(2) e o comprimento(10)
-#define ALTURASUBMARINO 3// nao seria altura em si mas significa que para escrever um submarino eh necessario 3 linhas
+#define ALTURASUBMARINO 2// nao seria altura em si mas significa que para escrever um submarino eh necessario 3 linhas
 #define COMPRIMENTOSUBMARINO 11// nao seria comprimento em si mas significa que para escrever um submarino eh necessario 11 colunas
 
 #define SUBMARINOINIMIGO 1// 1 eh o numero que indica que o obstaculo eh um submarino inimigo
@@ -111,6 +111,7 @@ typedef struct  {
     int mergulhadores;
     int oxigenio;
     int pontuacao;
+    unsigned long int tempo;
 } INTERFACEJOGO;
 
 
@@ -254,13 +255,13 @@ void le_tecla_imprime2 (){
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     if (submarino_inimigo.orientacao) {// eh diferente de 0 logo direita
-        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2,"_");
-        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___| |___");
+        //cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2,"_");
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___|O|___");
         cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,">\\________)");
 
     } else {// eh zero logo esquerda
-        cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2,"_");
-        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___| |___");
+        //cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2,"_");
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___|O|___");
         cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"(________/<");
     }
 }
@@ -276,7 +277,7 @@ void imprime_mergulhador(OBSTACULO mergulhador) {// imprime mergulhador uso do i
 
 void apaga_submarino_inimigo(OBSTACULO submarino_inimigo) {
     // apaga sub inimigo nao necessita if pois independente da orientacao tem que apagar mesmos espacos
-    cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
+    //cputsxy(submarino_inimigo.posicao.X+5,submarino_inimigo.posicao.Y-2," ");
     cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"         ");
     cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"           ");
 }
@@ -369,13 +370,13 @@ void imprime_submarino(SUBMARINO submarino) {// imprime o sub do jogador
     // 14 <-> YELLOW
     textcolor (YELLOW);// troca a cor do texto para amarelo
     if (submarino.orientacao) {// eh diferente de 0 logo direita
-        cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2,"_");
-        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"___| |___");
+        //cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2,"_");
+        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"___|O|___");
         cputsxy(submarino.posicao.X,submarino.posicao.Y,">\\________)");
 
     } else {// eh zero logo esquerda
-        cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2,"_");
-        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"___| |___");
+        //cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2,"_");
+        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"___|O|___");
         cputsxy(submarino.posicao.X,submarino.posicao.Y,"(________/<");
     }
     textcolor(WHITE);// troca a cor do texto para branco, volta a normal
@@ -384,7 +385,7 @@ void imprime_submarino(SUBMARINO submarino) {// imprime o sub do jogador
 
 void apaga_submarino(SUBMARINO submarino) {// posicoes que devem ser apagadas n dependem da orientacao logo sem if
     // funcao que apaga sub
-    cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
+    //cputsxy(submarino.posicao.X+5,submarino.posicao.Y-2," ");
     cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
     cputsxy(submarino.posicao.X,submarino.posicao.Y,"           ");
 
@@ -446,7 +447,7 @@ void gera_obstaculos(OBSTACULO *obstaculo) {
                     orientacao = rand()%2;
                     obstaculo[i].tipo = SUBMARINOINIMIGO;
                     obstaculo[i].orientacao = orientacao;
-                    obstaculo[i].posicao.Y = INICIOAGUA+i*3;
+                    obstaculo[i].posicao.Y = INICIOAGUA+i*ALTURASUBMARINO;
                     if (orientacao) {
                        obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO;
                     } else {
@@ -497,7 +498,7 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos) {
                     *a = getch();
                     switch(*a) {// deixei as funcoes de apagar e imprimir dentro dos ifs para n ficar imprimindo e apagando quando desnecessario
                         case SETACIMA:
-                            if (submarino->posicao.Y-2*ALTURASUBMARINO+1>LINHA1) {
+                            if (submarino->posicao.Y-2*ALTURASUBMARINO+1>LINHAINTERFACESUPERIOR) {
                                 apaga_submarino(*submarino);
                                 submarino->posicao.Y -=ALTURASUBMARINO;
                                 imprime_submarino(*submarino);
@@ -717,6 +718,11 @@ void imprime_oxigenio(INTERFACEJOGO *interface_jogo) {
     }*/
 }
 
+void atualiza_interface_tempo (INTERFACEJOGO *interface_jogo) {
+    gotoxy(40,2);
+    printf("%d:%d:%d",interface_jogo->tempo/1000/60/60,interface_jogo->tempo/1000/60,interface_jogo->tempo/1000%60);
+}
+
 
 void atualiza_interface(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
     /*
@@ -740,6 +746,14 @@ void atualiza_interface(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
     if (submarino->mergulhadores!=interface_jogo->mergulhadores) {
         atualiza_interface_mergulhadores(submarino,interface_jogo);
         interface_jogo->mergulhadores = submarino->mergulhadores;
+    }/*
+    if (submarino->tempo!=interface_jogo->mergulhadores) {
+        atualiza_interface_mergulhadores(submarino,interface_jogo);
+        interface_jogo->mergulhadores = submarino->mergulhadores;
+    }*/
+    if ((submarino->tempo-interface_jogo->tempo)%SEGUNDO<TEMPODELOOP) {// a diferença sempre sera !=0
+        interface_jogo->tempo = submarino->tempo;
+        atualiza_interface_tempo(interface_jogo);
     }
 }
 /*
@@ -757,6 +771,7 @@ void imprime_interface(INTERFACEJOGO *interface_jogo) {
     atualiza_pontuacao(interface_jogo);//
     imprime_oxigenio(interface_jogo);// imprime completo
     imprime_vidas(interface_jogo);
+    atualiza_interface_tempo(interface_jogo);
     //imprime_interface_mergulhadores();
 
 }
@@ -776,7 +791,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
     // obs: n foi proposital mas do jeito que esta fica impossivel caso esteja na borda esquerda virado para a esquerda
     //      e vira para a direita nao ha como virar novamente para a esquerda
     char a;
-    INTERFACEJOGO interface_jogo = {submarino->vidas, submarino->mergulhadores, submarino->oxigenio, submarino->pontuacao};
+    INTERFACEJOGO interface_jogo = {submarino->vidas, submarino->mergulhadores, submarino->oxigenio, submarino->pontuacao,submarino->tempo};
     imprime_moldura();
     imprime_submarino(*submarino);// imprime o submarino inicialmente
     imprime_agua();
