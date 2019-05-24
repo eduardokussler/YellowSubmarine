@@ -85,7 +85,7 @@
 // entao para acessar um atributo de algum desses dentro de um for faz de 0 ate <NUMOBSTACULOS e bota obstaculos_kussler[i].orientacao
 
 // to fingindo q sei o q to fazendo
-// parece que j� tem o tipo COORDENADA na conio
+// parece que jatem o tipo COORDENADA na conio
 typedef struct  {
     COORD posicao;
     int orientacao;// 1 direita 0 esquerda?
@@ -1003,15 +1003,15 @@ void creditos(){
     //return menu();
 }
 
-//A fun��o recebe as coordenadas do submarino e as de um obstaculo
-//e testa se est�o a menos de uma coordenada de distancia
+//A funcao recebe as coordenadas do submarino e as de um obstaculo
+//e testa se estao a menos de uma coordenada de distancia
 //se estiver, retorna 1
-//sen�o, retorna 0
+//senao, retorna 0
 int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do submarino com alguma outra coisa
 
     if(tipo == MERGULHADOR){
-        //testa se alguma parte do retangulo que representam o tamanho dos obst�culos
-        //teve uma intersec��o com o retangulo que representa o tamanho do submarino aliado
+        //testa se alguma parte do retangulo que representam o tamanho dos obstaculos
+        //teve uma interseccao com o retangulo que representa o tamanho do submarino aliado
         if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO - 1) >= obstaculo.X) && (sub.X <= (obstaculo.X + COMPRIMENTOMERGULHADOR - 1))){
             return 1;
         }else {
@@ -1069,7 +1069,7 @@ int main() {
     /*
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};// inicializa tudo com 0
     // o oxigenio depende do sleep entre os lacos
-    // tem 30 segundos de oxigenio mas se o cada la�o demora
+    // tem 30 segundos de oxigenio mas se o cada laco demora
     // meio segundo seria botar 60 de oxigenio e decrementar
     // 1 por laco
     SUBMARINO sub = {{COLUNAINICIAL,LINHAINICIAL},DIREITA,3,30,0,0};
