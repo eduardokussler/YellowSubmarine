@@ -719,8 +719,8 @@ void imprime_oxigenio(INTERFACEJOGO *interface_jogo) {
 }
 
 void atualiza_interface_tempo (INTERFACEJOGO *interface_jogo) {
-    gotoxy(40,2);
-    printf("%d:%d:%d",interface_jogo->tempo/1000/60/60,interface_jogo->tempo/1000/60,interface_jogo->tempo/1000%60);
+    gotoxy(38,2);// acho q nas horas n vai da problema
+    printf("%02d:%02d:%02d",interface_jogo->tempo/1000/60/60,interface_jogo->tempo/1000/60,interface_jogo->tempo/1000%60);
 }
 
 
