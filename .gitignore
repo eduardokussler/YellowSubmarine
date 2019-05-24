@@ -1,3 +1,5 @@
 
 main.exe
 main.o
+*.ipch
+.vscode/ipch/490b999e39472220/mmap_address.bin
