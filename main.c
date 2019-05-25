@@ -499,46 +499,48 @@ void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
 
 void atualiza_torpedo(TORPEDO *torpedo, SUBMARINO sub){
     if(torpedo->status == DIREITA){
-        torpedo->posicao.X += CAMINHOPORLOOP;
+        torpedo->posicao.X += CAMINHOPORLOOP;//adiciona a quantidade que o torpedo deve andar
     }else if(torpedo->status == ESQUERDA){
-        torpedo->posicao.X -= CAMINHOPORLOOP;
+        torpedo->posicao.X -= CAMINHOPORLOOP;//subtrai a quantidade que o torpedo deve andar
     }
-    if(torpedo->posicao.X <= COLUNA1 || torpedo->posicao.X >= COLUNA2){
-        torpedo->status = NAODISPARADO;
-        torpedo->posicao = sub.posicao;
+    if(torpedo->posicao.X <= COLUNA1 || torpedo->posicao.X >= COLUNA2){ // atingiu as bordas
+        torpedo->status = NAODISPARADO; //seta o status para "Nao disparado" assim o jogador pode disparar outro torpedo
+        //torpedo->posicao = sub.posicao;//reseta a posicao do torpedo
     }
 }
 
 void desenha_torpedo(TORPEDO *torpedo, SUBMARINO sub){
         if(torpedo->status == DIREITA){
-            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");
-            atualiza_torpedo(torpedo, sub);
-            if(torpedo->status == DIREITA){
-                cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "->");
+            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");//apaga o torpedo
+            atualiza_torpedo(torpedo, sub);//atualiza a posicao do torpedo
+            if(torpedo->status == DIREITA){//checa se ainda eh possivel desenhar o torpedo
+                cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "->");//desenha o torpedo
             }
         }else if(torpedo->status == ESQUERDA){
-            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");
-            atualiza_torpedo(torpedo, sub);
-            if(torpedo->status == ESQUERDA){
-                cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "<-");
+            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");//apaga o torpedo
+            atualiza_torpedo(torpedo, sub);//atualiza a posicao do torpedo
+            if(torpedo->status == ESQUERDA){//checa se ainda eh possivel desenhar o torpedo
+                cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "<-");//desenha o torpedo em direcao a esquerda
             }
         }
 }
 
+
+
 void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
     if(submarino->orientacao == DIREITA && torpedo->status == NAODISPARADO){
-        torpedo->posicao = submarino->posicao;
-        torpedo->posicao.X += COMPRIMENTOSUBMARINO;
-        torpedo->status = DIREITA;
-        submarino->oxigenio -= PENALIDADETORPEDO;
-        desenha_torpedo(torpedo, *submarino);
+        torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
+        torpedo->posicao.X += COMPRIMENTOSUBMARINO;//o comprimento do submarino eh adicionado para que parte do submarino nao seja apagada
+        torpedo->status = DIREITA;//seta a direcao para a qual o torpedo sera disparado
+        submarino->oxigenio -= PENALIDADETORPEDO;// penalidade por usar o torpedo
+        desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
 
     }else if(torpedo->status == NAODISPARADO){
-        torpedo->posicao = submarino->posicao;
-        torpedo->posicao.X -= 2;
-        torpedo->status = ESQUERDA;
-        submarino->oxigenio -= PENALIDADETORPEDO;
-        desenha_torpedo(torpedo, *submarino);
+        torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
+        torpedo->posicao.X -= 2;//duas posicoes sao subtraidas da posicao para que parte do submarino nao seja apagada
+        torpedo->status = ESQUERDA;//seta a direcao para a qual o torpedo sera disparado
+        submarino->oxigenio -= PENALIDADETORPEDO;// penalidade por usar o torpedo
+        desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
     }
 }
 
@@ -1080,7 +1082,8 @@ int colidiu(COORD sub, COORD obstaculo, int tipo){//testa se houve colisao do su
         }
         return 0;
     } else if(tipo == SUBMARINOINIMIGO){
-        //
+        //testa se alguma parte do retangulo que representam o tamanho dos obstaculos
+        //teve uma interseccao com o retangulo que representa o tamanho do submarino aliado
         if((sub.Y == obstaculo.Y) && ((sub.X + COMPRIMENTOSUBMARINO - 1) >= obstaculo.X) && (sub.X <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
             return 1;
         }else{
@@ -1092,10 +1095,10 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
     int i;
 
     int colisao;
-    for(i = 0; i < NUMOBSTACULOS; i++){
-        colisao = colidiu(submarino->posicao, obstaculos[i].posicao, obstaculos[i].tipo);
-        if(colisao){
-            if(obstaculos[i].tipo == SUBMARINOINIMIGO){
+    for(i = 0; i < NUMOBSTACULOS; i++){//percorre o array de obstaculos
+        colisao = colidiu(submarino->posicao, obstaculos[i].posicao, obstaculos[i].tipo); //testa se houve colisao do sub com algum obstaculo 
+        if(colisao){ // se houve colisao
+            if(obstaculos[i].tipo == SUBMARINOINIMIGO){// se houve colisao e o obstaculo era sub inimigo
                 submarino->vidas--;
                 //atualiza_vidas(submarino->vidas);
                 respawn_submarino(submarino);
@@ -1112,10 +1115,10 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
                     imprime_agua();
                     respawn_submarino(submarino);
                 }*/
-            }else if(obstaculos[i].tipo == MERGULHADOR){
+            }else if(obstaculos[i].tipo == MERGULHADOR){ // se houve colisao e o obstaculo era um mergulhador
                 apaga_mergulhador(obstaculos[i]);
-                obstaculos[i].tipo = SEMOBSTACULO;
-                if (submarino->mergulhadores<3) {
+                obstaculos[i].tipo = SEMOBSTACULO;//reseta o tipo do obstaculo
+                if (submarino->mergulhadores < MERGULHADORESMAXIMOS) {//testa 
                     submarino->mergulhadores++;
                     //atualiza_interface_mergulhadores(submarino);
                 }
@@ -1124,6 +1127,8 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
         }
     }
 }
+
+//Por enquanto so testa a colisao com subs inimigos
 int colidiu_torpedo(COORD torpedo, COORD obstaculo){//testa se houve colisao do submarino com alguma outra coisa
 
     /*if(tipo == MERGULHADOR){
@@ -1137,6 +1142,10 @@ int colidiu_torpedo(COORD torpedo, COORD obstaculo){//testa se houve colisao do 
         return 0;
     } else if(tipo == SUBMARINOINIMIGO){
         //*/
+
+        //testa se houve colisao do torpedo com um sub inimigo
+        //Retorna 1 se houve
+        //Retorna 0 se nao houve colisao
         if((torpedo.Y == obstaculo.Y) && ((torpedo.X + COMPRIMENTOTORPEDO - 1) >= obstaculo.X) && (torpedo.X <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
             return 1;
         }else{
@@ -1147,13 +1156,13 @@ int colidiu_torpedo(COORD torpedo, COORD obstaculo){//testa se houve colisao do 
 
 void colisao_torpedo(TORPEDO *torpedo, OBSTACULO obstaculos[], SUBMARINO *sub){
     int i;
-    for(i = 0; i < NUMOBSTACULOS; i++){
+    for(i = 0; i < NUMOBSTACULOS; i++){//percorre o array de obstaculos
         if(obstaculos[i].tipo == SUBMARINOINIMIGO && (torpedo->status != NAODISPARADO)){
-            if(colidiu_torpedo(torpedo->posicao, obstaculos[i].posicao)){
-                torpedo->status = NAODISPARADO;
-                apaga_submarino_inimigo(obstaculos[i]);
+            if(colidiu_torpedo(torpedo->posicao, obstaculos[i].posicao)){//chama a funcao para testar se houve colisao
+                torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+                apaga_submarino_inimigo(obstaculos[i]);//apaga o sub inimigo atingido
                 obstaculos[i].tipo = SEMOBSTACULO;
-                sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;
+                sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;//aumenta a pontuacao do jogador por ter destruido um sub
             }
         }
     }
