@@ -528,19 +528,21 @@ void desenha_torpedo(TORPEDO *torpedo, SUBMARINO sub){
 
 
 void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
-    if(submarino->orientacao == DIREITA && torpedo->status == NAODISPARADO){
-        torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
-        torpedo->posicao.X += COMPRIMENTOSUBMARINO;//o comprimento do submarino eh adicionado para que parte do submarino nao seja apagada
-        torpedo->status = DIREITA;//seta a direcao para a qual o torpedo sera disparado
-        submarino->oxigenio -= PENALIDADETORPEDO;// penalidade por usar o torpedo
-        desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
+    if(submarino->posicao.Y >= INICIOAGUA){
+        if(submarino->orientacao == DIREITA && torpedo->status == NAODISPARADO){
+            torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
+            torpedo->posicao.X += COMPRIMENTOSUBMARINO;//o comprimento do submarino eh adicionado para que parte do submarino nao seja apagada
+            torpedo->status = DIREITA;//seta a direcao para a qual o torpedo sera disparado
+            submarino->oxigenio -= PENALIDADETORPEDO;// penalidade por usar o torpedo
+            desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
 
-    }else if(torpedo->status == NAODISPARADO){
-        torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
-        torpedo->posicao.X -= 2;//duas posicoes sao subtraidas da posicao para que parte do submarino nao seja apagada
-        torpedo->status = ESQUERDA;//seta a direcao para a qual o torpedo sera disparado
-        submarino->oxigenio -= PENALIDADETORPEDO;// penalidade por usar o torpedo
-        desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
+        }else if(torpedo->status == NAODISPARADO){
+            torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
+            torpedo->posicao.X -= 2;//duas posicoes sao subtraidas da posicao para que parte do submarino nao seja apagada
+            torpedo->status = ESQUERDA;//seta a direcao para a qual o torpedo sera disparado
+            submarino->oxigenio -= PENALIDADETORPEDO;// penalidade por usar o torpedo
+            desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
+        }
     }
 }
 
@@ -1096,7 +1098,7 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
 
     int colisao;
     for(i = 0; i < NUMOBSTACULOS; i++){//percorre o array de obstaculos
-        colisao = colidiu(submarino->posicao, obstaculos[i].posicao, obstaculos[i].tipo); //testa se houve colisao do sub com algum obstaculo 
+        colisao = colidiu(submarino->posicao, obstaculos[i].posicao, obstaculos[i].tipo); //testa se houve colisao do sub com algum obstaculo
         if(colisao){ // se houve colisao
             if(obstaculos[i].tipo == SUBMARINOINIMIGO){// se houve colisao e o obstaculo era sub inimigo
                 submarino->vidas--;
@@ -1118,7 +1120,7 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
             }else if(obstaculos[i].tipo == MERGULHADOR){ // se houve colisao e o obstaculo era um mergulhador
                 apaga_mergulhador(obstaculos[i]);
                 obstaculos[i].tipo = SEMOBSTACULO;//reseta o tipo do obstaculo
-                if (submarino->mergulhadores < MERGULHADORESMAXIMOS) {//testa 
+                if (submarino->mergulhadores < MERGULHADORESMAXIMOS) {//testa
                     submarino->mergulhadores++;
                     //atualiza_interface_mergulhadores(submarino);
                 }
