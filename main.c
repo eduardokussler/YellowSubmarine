@@ -35,8 +35,13 @@
 // 4 colunas para escrever mergulhador talvez seja util trocar para tres pelo mesmo motivo da altura sub se quiser trocar la
 #define COMPRIMENTOMERGULHADOR 4
 
+//2 colunas para escrever o missil
+#define COMPRIMENTOTORPEDO 2
+
 #define DIREITA 1// foi convencionado que orientacao 1 eh direita
 #define ESQUERDA 0// foi convencionado que orientacao 0 eh esquerda
+#define NAODISPARADO 2
+
 // so tornei mais generico o inicioagua
 #define INICIOAGUA LINHAINICIAL+ALTURASUBMARINO// o submarino pode estar dentro ou fora dagua, se  estiver em 7 ou abaixo esta abaixo da agua
 #define CAMINHOPORLOOP 3// caminho andado por loop, a cade loop os obstaculos avancam 3 posicoes no caso
@@ -59,6 +64,7 @@
 #define SETACIMA 72
 #define SETAESQUERDA 75
 #define SETADIREITA 77
+#define ESPACO 32
 
 #define SEGUNDO 1000//milissegundos
 
@@ -76,8 +82,10 @@
 #define COLUNAVIDAS COLUNA2-9
 #define COLUNAOXIGENIO COLUNA2-40-1-1
 
-#define PONTUACAOSALVARMERGULHADORES 20
+//#define PONTUACAOSALVARMERGULHADORES 20
+#define PONTUACAODESTRUICAOSUBINIMIGO 10
 
+#define PENALIDADETORPEDO 10
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
 // se tem um ponteiro para a estrutura usa estrutura_pointeiro->atributo ex: ponteiro_para_submarino_do_kuss_kussler->orientacao
 // se tem um vetor de obstaculos por exemplo e quer acessar atributos de cada e isso esta dentro da funcao
@@ -99,7 +107,7 @@ typedef struct  {
 } SUBMARINO;
 
 typedef struct  {
-    int tipo;//1: submarino 2: mergulhador
+    int tipo;//1: submarino 2: mergulhador 3: torpedo
     COORD posicao;
     int orientacao;// 1 direita 0 esquerda?
     // n botei a cor
@@ -117,8 +125,7 @@ typedef struct  {
 
 typedef struct  {
     COORD posicao;
-    int direcao;
-    int status;
+    int status;//0 esquerda, 1 direita, 2 nao disparado
 } TORPEDO;
 
 void menu();
@@ -126,7 +133,7 @@ void creditos();
 void proMeio();
 void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstaculos[]);
 void imprime_moldura();
-
+void colisao_torpedo(TORPEDO*, OBSTACULO *, SUBMARINO*);
 
 void missel_atualiza(int x,int y) {
     putchxy(x,y,'>');
@@ -490,7 +497,53 @@ void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
     testa_colisao_submarino_obstaculos(submarino,obstaculos);
 }
 
-void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos) {
+void atualiza_torpedo(TORPEDO *torpedo, SUBMARINO sub){
+    if(torpedo->status == DIREITA){
+        torpedo->posicao.X += CAMINHOPORLOOP;
+    }else if(torpedo->status == ESQUERDA){
+        torpedo->posicao.X -= CAMINHOPORLOOP;
+    }
+    if(torpedo->posicao.X <= COLUNA1 || torpedo->posicao.X >= COLUNA2){
+        torpedo->status = NAODISPARADO;
+        torpedo->posicao = sub.posicao;
+    }
+}
+
+void desenha_torpedo(TORPEDO *torpedo, SUBMARINO sub){
+        if(torpedo->status == DIREITA){
+            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");
+            atualiza_torpedo(torpedo, sub);
+            if(torpedo->status == DIREITA){
+                cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "->");
+            }
+        }else if(torpedo->status == ESQUERDA){
+            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");
+            atualiza_torpedo(torpedo, sub);
+            if(torpedo->status == ESQUERDA){
+                cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "<-");
+            }
+        }
+}
+
+void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
+    if(submarino->orientacao == DIREITA && torpedo->status == NAODISPARADO){
+        torpedo->posicao = submarino->posicao;
+        torpedo->posicao.X += COMPRIMENTOSUBMARINO;
+        torpedo->status = DIREITA;
+        submarino->oxigenio -= PENALIDADETORPEDO;
+        desenha_torpedo(torpedo, *submarino);
+
+    }else if(torpedo->status == NAODISPARADO){
+        torpedo->posicao = submarino->posicao;
+        torpedo->posicao.X -= 2;
+        torpedo->status = ESQUERDA;
+        submarino->oxigenio -= PENALIDADETORPEDO;
+        desenha_torpedo(torpedo, *submarino);
+    }
+}
+
+void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos, TORPEDO *torpedo) {
+
     if (kbhit()) {
             //fflush(stdin);
             *a = getch();
@@ -559,6 +612,10 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos) {
                             //x -=1;
                             break;
                     }
+            }
+            if(*a == 32){
+                dispara_torpedo(submarino, torpedo);
+
             }
         }
 }
@@ -782,7 +839,7 @@ void imprime_interface(INTERFACEJOGO *interface_jogo) {
 // funcao move o submarino e os obstaculos
 // n vou comentar individualmente as condicoes para ver se o submarino atravessou a borda mas o raciocinio eh semelhante ao usado
 // para ver se o submarino inimigo fez a mesma coisa
-void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
+void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
     // passei por ponteiro para alterar no da funcao principal
 
     // quando apertar <- ou -> se estiver virado para o lado oposto ele apenas virara para o lado certo se
@@ -801,7 +858,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
         atualiza_tempo (submarino);
         gera_obstaculos(obstaculos);// funcao que gera obstaculos nas posicoes que n tem obstaculos
         apaga_obstaculos(obstaculos);// apaga os os obstaculos
-        switch_game_loop(&a,submarino,obstaculos);
+        switch_game_loop(&a,submarino,obstaculos, torpedo );
         //atualiza_interface(submarino,&interface_jogo);
         // depois que faz o comando do submarino apaga os obstaculos na tela e atualiza as posicoes dos obstaculos
         // dai testa se alguma dessas novas posicoes bate na tela, ou seja se o obstaculo atravessou a tela
@@ -810,6 +867,9 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos){// deixei ainda com 
         apaga_obstaculos(obstaculos);
         imprime_submarino(*submarino);// gambiarra pro caso de um escapar do outro
         */
+        desenha_torpedo(torpedo, *submarino);
+        colisao_torpedo(torpedo, obstaculos, submarino);
+        //atualiza_torpedo(torpedo);
         atualiza_obstaculos(obstaculos);
         testa_colisao(submarino,obstaculos);
         imprime_obstaculos(obstaculos);
@@ -863,7 +923,8 @@ void imprime_moldura_menu() {
 void novo_jogo() {
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
     SUBMARINO sub = {{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0};
-    game_loop(&sub,obstaculos);
+    TORPEDO torpedo = {sub.posicao, NAODISPARADO};
+    game_loop(&sub,obstaculos, &torpedo);
 }
 
 
@@ -1032,10 +1093,10 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
 
     int colisao;
     for(i = 0; i < NUMOBSTACULOS; i++){
-        colisao = colidiu((*submarino).posicao, obstaculos[i].posicao, obstaculos[i].tipo);
+        colisao = colidiu(submarino->posicao, obstaculos[i].posicao, obstaculos[i].tipo);
         if(colisao){
             if(obstaculos[i].tipo == SUBMARINOINIMIGO){
-                (*submarino).vidas--;
+                submarino->vidas--;
                 //atualiza_vidas(submarino->vidas);
                 respawn_submarino(submarino);
                 /*
@@ -1063,7 +1124,40 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
         }
     }
 }
+int colidiu_torpedo(COORD torpedo, COORD obstaculo){//testa se houve colisao do submarino com alguma outra coisa
 
+    /*if(tipo == MERGULHADOR){
+        //testa se alguma parte do retangulo que representam o tamanho dos obstaculos
+        //teve uma interseccao com o retangulo que representa o tamanho do submarino aliado
+        if((torpedo.Y == obstaculo.Y) && ((torpedo.X + COMPRIMENTOTORPEDO - 1) >= obstaculo.X) && (torpedo.X <= (obstaculo.X + COMPRIMENTOMERGULHADOR - 1))){
+            return 1;
+        }else {
+            return 0;
+        }
+        return 0;
+    } else if(tipo == SUBMARINOINIMIGO){
+        //*/
+        if((torpedo.Y == obstaculo.Y) && ((torpedo.X + COMPRIMENTOTORPEDO - 1) >= obstaculo.X) && (torpedo.X <= (obstaculo.X + COMPRIMENTOSUBMARINO - 1))){
+            return 1;
+        }else{
+            return 0;
+        }
+    }
+
+
+void colisao_torpedo(TORPEDO *torpedo, OBSTACULO obstaculos[], SUBMARINO *sub){
+    int i;
+    for(i = 0; i < NUMOBSTACULOS; i++){
+        if(obstaculos[i].tipo == SUBMARINOINIMIGO && (torpedo->status != NAODISPARADO)){
+            if(colidiu_torpedo(torpedo->posicao, obstaculos[i].posicao)){
+                torpedo->status = NAODISPARADO;
+                apaga_submarino_inimigo(obstaculos[i]);
+                obstaculos[i].tipo = SEMOBSTACULO;
+                sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;
+            }
+        }
+    }
+}
 
 int main() {
     /*
