@@ -133,7 +133,7 @@ void creditos();
 void proMeio();
 void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstaculos[]);
 void imprime_moldura();
-void colisao_torpedo(TORPEDO*, OBSTACULO *, SUBMARINO*);
+void testa_colisao_torpedo(TORPEDO*, OBSTACULO *, SUBMARINO*);
 
 void missel_atualiza(int x,int y) {
     putchxy(x,y,'>');
@@ -492,9 +492,10 @@ void testa_colisao_obstaculos_tela(OBSTACULO *obstaculos) {
 
 // testa se houve colisao entre as bordas da tela e os obstaculos(o obstaculo completou sua rota logo eh apagado)
 // eventualmente deve testar colisao entre submarino e obstaculos e entre misseis e obstaculos
-void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos) {
+void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos, TORPEDO *torpedo) {
     testa_colisao_obstaculos_tela(obstaculos);
     testa_colisao_submarino_obstaculos(submarino,obstaculos);
+    testa_colisao_torpedo(torpedo, obstaculos, submarino);
 }
 
 void atualiza_torpedo(TORPEDO *torpedo, SUBMARINO sub){
@@ -509,15 +510,19 @@ void atualiza_torpedo(TORPEDO *torpedo, SUBMARINO sub){
     }
 }
 
+void apaga_torpedo(TORPEDO *torpedo){//apaga o submarino
+    cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");
+}
+
 void desenha_torpedo(TORPEDO *torpedo, SUBMARINO sub){
         if(torpedo->status == DIREITA){
-            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");//apaga o torpedo
+            apaga_torpedo(torpedo);//apaga o torpedo
             atualiza_torpedo(torpedo, sub);//atualiza a posicao do torpedo
             if(torpedo->status == DIREITA){//checa se ainda eh possivel desenhar o torpedo
                 cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "->");//desenha o torpedo
             }
         }else if(torpedo->status == ESQUERDA){
-            cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "  ");//apaga o torpedo
+            apaga_torpedo(torpedo);//apaga o torpedo
             atualiza_torpedo(torpedo, sub);//atualiza a posicao do torpedo
             if(torpedo->status == ESQUERDA){//checa se ainda eh possivel desenhar o torpedo
                 cputsxy(torpedo->posicao.X, torpedo->posicao.Y, "<-");//desenha o torpedo em direcao a esquerda
@@ -528,7 +533,9 @@ void desenha_torpedo(TORPEDO *torpedo, SUBMARINO sub){
 
 
 void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
-    if(submarino->posicao.Y >= INICIOAGUA){
+
+    //testa se esta dentro da agua e possui o oxigenio necessario para realizar o disparo
+    if(submarino->posicao.Y >= INICIOAGUA && submarino->oxigenio > PENALIDADETORPEDO){
         if(submarino->orientacao == DIREITA && torpedo->status == NAODISPARADO){
             torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
             torpedo->posicao.X += COMPRIMENTOSUBMARINO;//o comprimento do submarino eh adicionado para que parte do submarino nao seja apagada
@@ -872,10 +879,10 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         imprime_submarino(*submarino);// gambiarra pro caso de um escapar do outro
         */
         desenha_torpedo(torpedo, *submarino);
-        colisao_torpedo(torpedo, obstaculos, submarino);
+        //colisao_torpedo(torpedo, obstaculos, submarino);
         //atualiza_torpedo(torpedo);
         atualiza_obstaculos(obstaculos);
-        testa_colisao(submarino,obstaculos);
+        testa_colisao(submarino,obstaculos, torpedo);
         imprime_obstaculos(obstaculos);
         resgatou_mergulhadores(submarino);
         atualiza_oxigenio_submarino(submarino);
@@ -938,7 +945,7 @@ void novo_jogo() {
 void proMeio(int linha){
     gotoxy(COLUNA2/ 2, (LINHA2 / 2) + linha);
 }
-//funcao menu: desenha o menu e chama a fun��o de acordo com o
+//funcao menu: desenha o menu e chama a funcao de acordo com o
 //numero selecionado
 void menu(){
     char resp;
@@ -1156,12 +1163,13 @@ int colidiu_torpedo(COORD torpedo, COORD obstaculo){//testa se houve colisao do 
     }
 
 
-void colisao_torpedo(TORPEDO *torpedo, OBSTACULO obstaculos[], SUBMARINO *sub){
+void testa_colisao_torpedo(TORPEDO *torpedo, OBSTACULO obstaculos[], SUBMARINO *sub){
     int i;
     for(i = 0; i < NUMOBSTACULOS; i++){//percorre o array de obstaculos
         if(obstaculos[i].tipo == SUBMARINOINIMIGO && (torpedo->status != NAODISPARADO)){
             if(colidiu_torpedo(torpedo->posicao, obstaculos[i].posicao)){//chama a funcao para testar se houve colisao
                 torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+                apaga_torpedo(torpedo);
                 apaga_submarino_inimigo(obstaculos[i]);//apaga o sub inimigo atingido
                 obstaculos[i].tipo = SEMOBSTACULO;
                 sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;//aumenta a pontuacao do jogador por ter destruido um sub
