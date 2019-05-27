@@ -546,7 +546,7 @@ void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
             desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
 
             //testa se a posicao do sub permite disparar o torpedo
-        }else if(torpedo->status == NAODISPARADO && submarino->posicao.X-COMPRIMENTOTORPEDO>COLUNA1){
+        }else if(torpedo->status == NAODISPARADO && submarino->orientacao == ESQUERDA && submarino->posicao.X-COMPRIMENTOTORPEDO>COLUNA1){
             torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
             torpedo->posicao.X -= 2;//duas posicoes sao subtraidas da posicao para que parte do submarino nao seja apagada
             torpedo->status = ESQUERDA;//seta a direcao para a qual o torpedo sera disparado
