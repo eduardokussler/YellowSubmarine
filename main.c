@@ -136,6 +136,10 @@ void proMeio();
 void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstaculos[]);
 void imprime_moldura();
 void testa_colisao_torpedo(TORPEDO*, OBSTACULO *, SUBMARINO*);
+int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo);
+int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
+int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
+int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     textcolor(LIGHTMAGENTA);
@@ -729,6 +733,103 @@ void imprime_interface(INTERFACEJOGO *interface_jogo) {
 
 }
 
+void atualiza_obstaculo_individual(COORD *posicao, int orientacao) {
+    if (orientacao==ESQUERDA) {
+        posicao->X -= CAMINHOPORLOOP;
+    } else {
+        posicao->X += CAMINHOPORLOOP;
+    }
+}
+
+void testa_colisao_tela_inimigo(OBSTACULO *obstaculo) {
+    if (obstaculo->posicao.X+COMPRIMENTOSUBMARINO-1>=COLUNA2 || obstaculo->posicao.X<=COLUNA1) {
+        obstaculo->tipo = 0;
+    } //else {
+    //    imprime_submarino_inimigo(*obstaculo);
+    //}
+}
+void testa_colisao_tela_mergulhador(OBSTACULO *obstaculo) {
+    if (obstaculo->posicao.X+COMPRIMENTOMERGULHADOR-1>=COLUNA2 || obstaculo->posicao.X<=COLUNA1) {
+        obstaculo->tipo = 0;
+    }// else {
+     //   imprime_mergulhador(*obstaculo);
+    //}
+}
+
+void testa_colisao_torpedo_individual (TORPEDO *torpedo, OBSTACULO *obstaculo, SUBMARINO *sub){
+    //int i;
+    //for(i = 0; i < NUMOBSTACULOS; i++){//percorre o array de obstaculos
+        if(torpedo->status != NAODISPARADO){
+            if(obstaculo->tipo == SUBMARINOINIMIGO && colidiu_torpedo_submarino_inimigo (torpedo->posicao,obstaculo->posicao)){//chama a funcao para testar se houve colisao
+                torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+                apaga_torpedo(torpedo);
+                apaga_submarino_inimigo(*obstaculo);//apaga o sub inimigo atingido
+                obstaculo->tipo = SEMOBSTACULO;
+                sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;//aumenta a pontuacao do jogador por ter destruido um sub
+            }else if(obstaculo->tipo == MERGULHADOR && colidiu_torpedo_mergulhador (torpedo->posicao,obstaculo->posicao)){
+                torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+                apaga_torpedo(torpedo);
+                apaga_mergulhador(*obstaculo);
+                obstaculo->tipo = SEMOBSTACULO;
+                if(sub->pontuacao >= PENALIDADEMORTEMERGULHADOR){
+                    sub->pontuacao -= PENALIDADEMORTEMERGULHADOR;
+                } else {
+                    sub->pontuacao = 0;
+                }
+            }
+        }
+    //}
+}
+
+void imprime_obstaculo_individual(OBSTACULO obstaculo) {
+    if (obstaculo.tipo==SUBMARINOINIMIGO) {
+        imprime_submarino_inimigo(obstaculo);
+    } else if(obstaculo.tipo==MERGULHADOR) {
+        imprime_mergulhador(obstaculo);
+    }
+}
+
+void testa_colisao_submarino_inimigo(SUBMARINO *submarino, OBSTACULO *obstaculo) {
+    if (colidiu_sub_inimigo(submarino->posicao,obstaculo->posicao) && obstaculo->tipo==SUBMARINOINIMIGO) {
+        submarino->vidas--;
+        respawn_submarino(submarino);
+    }
+}
+
+void testa_colisao_submarino_mergulhador(SUBMARINO *submarino, OBSTACULO *obstaculo) {
+    if (colidiu_sub_mergulhador(submarino->posicao,obstaculo->posicao) && obstaculo->tipo==MERGULHADOR) {
+        apaga_mergulhador(*obstaculo);
+        obstaculo->tipo = SEMOBSTACULO;//reseta o tipo do obstaculo
+        if (submarino->mergulhadores < MERGULHADORESMAXIMOS) {//testa
+           submarino->mergulhadores++;
+          //atualiza_interface_mergulhadores(submarino);
+        }
+        imprime_submarino(*submarino);
+    }
+}
+
+void junta_tudo(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino) {
+    int i;
+    for (i = 0;i<NUMOBSTACULOS;i++) {
+        if (obstaculos[i].tipo==SUBMARINOINIMIGO) {
+            apaga_submarino_inimigo(obstaculos[i]);
+            atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
+            testa_colisao_tela_inimigo(&obstaculos[i]);
+            testa_colisao_torpedo(torpedo, obstaculos, submarino);
+            testa_colisao_submarino_inimigo(submarino,&obstaculos[i]);
+            imprime_obstaculo_individual(obstaculos[i]);
+        } else if (obstaculos[i].tipo==MERGULHADOR){
+            apaga_mergulhador(obstaculos[i]);
+            atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
+            testa_colisao_tela_mergulhador(&obstaculos[i]);
+            testa_colisao_torpedo(torpedo, obstaculos, submarino);
+            testa_colisao_submarino_mergulhador(submarino,&obstaculos[i]);
+            imprime_obstaculo_individual(obstaculos[i]);
+        }
+    }
+}
+
+
 // acho q pular para cima e baixo esta certo mas para os lados incorreto, mas achei meio estranho mover uma so posicao para direita ou esquerda
 // pois a tela eh muito pequena para andar tao rapido assim
 // talvez a melhor solucao seja mover entre 1 e 11
@@ -753,7 +854,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         Sleep(TEMPODELOOP);// para dar um tempo entre loops
         atualiza_tempo (submarino);
         gera_obstaculos(obstaculos);// funcao que gera obstaculos nas posicoes que n tem obstaculos
-        apaga_obstaculos(obstaculos);// apaga os os obstaculos
+        //apaga_obstaculos(obstaculos);// apaga os os obstaculos
         switch_game_loop(&a,submarino,obstaculos, torpedo );
         //
         //atualiza_interface(submarino,&interface_jogo);
@@ -767,14 +868,21 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         //colisao_torpedo(torpedo, obstaculos, submarino);
         //atualiza_torpedo(torpedo);
         //
+        /*
+        apaga_obstaculos(obstaculos);
         atualiza_obstaculos(obstaculos);
-        testa_colisao(submarino,obstaculos, torpedo);
-        desenha_torpedo(torpedo, *submarino);
+        testa_colisao_obstaculos_tela(obstaculos);
+        testa_colisao_torpedo(torpedo, obstaculos, submarino);
+        testa_colisao_submarino_obstaculos(submarino,obstaculos);
+        //desenha_torpedo(torpedo, *submarino);
         imprime_obstaculos(obstaculos);
+        */
+        junta_tudo(obstaculos,torpedo,submarino);
+        desenha_torpedo(torpedo, *submarino);
         resgatou_mergulhadores(submarino);
         atualiza_oxigenio_submarino(submarino);
         atualiza_pontuacao_submerso(submarino);
-        atualiza_interface(submarino,&interface_jogo);
+        //atualiza_interface(submarino,&interface_jogo);
         testa_morte_oxigenio (submarino);
         atualiza_interface(submarino,&interface_jogo);
     } while(a!=ESC && submarino->vidas>0);
