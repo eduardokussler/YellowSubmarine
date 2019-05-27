@@ -84,6 +84,7 @@
 
 //#define PONTUACAOSALVARMERGULHADORES 20
 #define PONTUACAODESTRUICAOSUBINIMIGO 10
+#define PENALIDADEMORTEMERGULHADOR 5
 
 #define PENALIDADETORPEDO 10
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
@@ -107,7 +108,7 @@ typedef struct  {
 } SUBMARINO;
 
 typedef struct  {
-    int tipo;//1: submarino 2: mergulhador 3: torpedo
+    int tipo;//1: submarino 2: mergulhador
     COORD posicao;
     int orientacao;// 1 direita 0 esquerda?
     // n botei a cor
@@ -504,7 +505,7 @@ void atualiza_torpedo(TORPEDO *torpedo, SUBMARINO sub){
     }else if(torpedo->status == ESQUERDA){
         torpedo->posicao.X -= CAMINHOPORLOOP;//subtrai a quantidade que o torpedo deve andar
     }
-    if(torpedo->posicao.X <= COLUNA1 || torpedo->posicao.X >= COLUNA2){ // atingiu as bordas
+    if(torpedo->posicao.X <= COLUNA1 || torpedo->posicao.X + COMPRIMENTOTORPEDO - 1 >= COLUNA2){ // atingiu as bordas
         torpedo->status = NAODISPARADO; //seta o status para "Nao disparado" assim o jogador pode disparar outro torpedo
         //torpedo->posicao = sub.posicao;//reseta a posicao do torpedo
     }
@@ -531,19 +532,21 @@ void desenha_torpedo(TORPEDO *torpedo, SUBMARINO sub){
 }
 
 
-
+//x123456789ABC
 void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
 
     //testa se esta dentro da agua e possui o oxigenio necessario para realizar o disparo
     if(submarino->posicao.Y >= INICIOAGUA && submarino->oxigenio > PENALIDADETORPEDO){
-        if(submarino->orientacao == DIREITA && torpedo->status == NAODISPARADO){
+            //testa se a posicao do sub permite disparar o torpedo
+        if(submarino->orientacao == DIREITA && torpedo->status == NAODISPARADO && submarino->posicao.X+COMPRIMENTOSUBMARINO-1+COMPRIMENTOTORPEDO<COLUNA2){//x123456789ABC
             torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
             torpedo->posicao.X += COMPRIMENTOSUBMARINO;//o comprimento do submarino eh adicionado para que parte do submarino nao seja apagada
             torpedo->status = DIREITA;//seta a direcao para a qual o torpedo sera disparado
             submarino->oxigenio -= PENALIDADETORPEDO;// penalidade por usar o torpedo
             desenha_torpedo(torpedo, *submarino);//chamada da funcao que desenha o torpedo
 
-        }else if(torpedo->status == NAODISPARADO){
+            //testa se a posicao do sub permite disparar o torpedo
+        }else if(torpedo->status == NAODISPARADO && submarino->posicao.X-COMPRIMENTOTORPEDO>COLUNA1){
             torpedo->posicao = submarino->posicao;//torpedo esta na mesma posicao do submarino
             torpedo->posicao.X -= 2;//duas posicoes sao subtraidas da posicao para que parte do submarino nao seja apagada
             torpedo->status = ESQUERDA;//seta a direcao para a qual o torpedo sera disparado
@@ -1138,17 +1141,17 @@ void testa_colisao_submarino_obstaculos(SUBMARINO* submarino, OBSTACULO obstacul
 }
 
 //Por enquanto so testa a colisao com subs inimigos
-int colidiu_torpedo(COORD torpedo, COORD obstaculo){//testa se houve colisao do submarino com alguma outra coisa
+int colidiu_torpedo(COORD torpedo, COORD obstaculo, int tipo){//testa se houve colisao do submarino com alguma outra coisa
 
-    /*if(tipo == MERGULHADOR){
+    if(tipo == MERGULHADOR){
         //testa se alguma parte do retangulo que representam o tamanho dos obstaculos
-        //teve uma interseccao com o retangulo que representa o tamanho do submarino aliado
+        //teve uma interseccao com o retangulo que representa o tamanho do torpedo
         if((torpedo.Y == obstaculo.Y) && ((torpedo.X + COMPRIMENTOTORPEDO - 1) >= obstaculo.X) && (torpedo.X <= (obstaculo.X + COMPRIMENTOMERGULHADOR - 1))){
             return 1;
         }else {
             return 0;
         }
-        return 0;
+
     } else if(tipo == SUBMARINOINIMIGO){
         //*/
 
@@ -1161,18 +1164,29 @@ int colidiu_torpedo(COORD torpedo, COORD obstaculo){//testa se houve colisao do 
             return 0;
         }
     }
+    }
 
 
 void testa_colisao_torpedo(TORPEDO *torpedo, OBSTACULO obstaculos[], SUBMARINO *sub){
     int i;
     for(i = 0; i < NUMOBSTACULOS; i++){//percorre o array de obstaculos
-        if(obstaculos[i].tipo == SUBMARINOINIMIGO && (torpedo->status != NAODISPARADO)){
-            if(colidiu_torpedo(torpedo->posicao, obstaculos[i].posicao)){//chama a funcao para testar se houve colisao
-                torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
-                apaga_torpedo(torpedo);
-                apaga_submarino_inimigo(obstaculos[i]);//apaga o sub inimigo atingido
-                obstaculos[i].tipo = SEMOBSTACULO;
-                sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;//aumenta a pontuacao do jogador por ter destruido um sub
+        if(torpedo->status != NAODISPARADO){
+            if(colidiu_torpedo(torpedo->posicao, obstaculos[i].posicao, obstaculos[i].tipo)){;
+                if(obstaculos[i].tipo == SUBMARINOINIMIGO){//chama a funcao para testar se houve colisao
+                    torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+                    apaga_torpedo(torpedo);
+                    apaga_submarino_inimigo(obstaculos[i]);//apaga o sub inimigo atingido
+                    obstaculos[i].tipo = SEMOBSTACULO;
+                    sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;//aumenta a pontuacao do jogador por ter destruido um sub
+                }else if(obstaculos[i].tipo == MERGULHADOR){
+                    torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+                    apaga_torpedo(torpedo);
+                    apaga_mergulhador(obstaculos[i]);
+                    obstaculos[i].tipo = SEMOBSTACULO;
+                    if(sub->pontuacao > PENALIDADEMORTEMERGULHADOR){
+                        sub->pontuacao -= PENALIDADEMORTEMERGULHADOR;
+                    }
+                }
             }
         }
     }
