@@ -495,8 +495,8 @@ void testa_colisao_obstaculos_tela(OBSTACULO *obstaculos) {
 // eventualmente deve testar colisao entre submarino e obstaculos e entre misseis e obstaculos
 void testa_colisao(SUBMARINO *submarino,OBSTACULO *obstaculos, TORPEDO *torpedo) {
     testa_colisao_obstaculos_tela(obstaculos);
-    testa_colisao_submarino_obstaculos(submarino,obstaculos);
     testa_colisao_torpedo(torpedo, obstaculos, submarino);
+    testa_colisao_submarino_obstaculos(submarino,obstaculos);
 }
 
 void atualiza_torpedo(TORPEDO *torpedo, SUBMARINO sub){
