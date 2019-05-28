@@ -88,6 +88,7 @@
 #define PENALIDADEMORTEMERGULHADOR 5
 
 #define PENALIDADETORPEDO 5
+#define MAXSTRING 9//8 letras e o \0
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
 // se tem um ponteiro para a estrutura usa estrutura_pointeiro->atributo ex: ponteiro_para_submarino_do_kuss_kussler->orientacao
 // se tem um vetor de obstaculos por exemplo e quer acessar atributos de cada e isso esta dentro da funcao
@@ -97,6 +98,7 @@
 // to fingindo q sei o q to fazendo
 // parece que jatem o tipo COORDENADA na conio
 typedef struct  {
+    char nome[MAXSTRING];
     COORD posicao;
     int orientacao;// 1 direita 0 esquerda?
     int vidas;
@@ -130,6 +132,8 @@ typedef struct  {
     int status;//0 esquerda, 1 direita, 2 nao disparado
 } TORPEDO;
 
+
+
 void menu();
 void creditos();
 void proMeio();
@@ -140,6 +144,7 @@ int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo);
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
+int guarda_estrutura(SUBMARINO submarino);
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     textcolor(LIGHTMAGENTA);
@@ -903,6 +908,8 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     } while(a!=ESC && submarino->vidas>0);
     if (submarino->vidas==0) {
         animacao_sem_vidas(submarino,obstaculos);
+    } else {
+        guarda_estrutura(*submarino);
     }
     clrscr();
 }
@@ -941,10 +948,93 @@ void imprime_moldura_menu() {
 
 }
 
+int tenta_guardar_estrutura(SUBMARINO *submarino) {
+    
+    while() {
+        
+    }
+}
+
+
+int guarda_estrutura(SUBMARINO submarino) {
+    FILE *arq;
+    char nome[MAXSTRING+4];
+    strcpy(nome,submarino.nome);
+    strcat(nome,".bin");
+    arq = fopen(nome,"wb");
+    clrscr();
+    if (arq) {
+    if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
+            //printf("DALE");
+        return 1;
+    } else {
+        cputsxy(METADEX,METADEY,"ERRO");
+        getch();
+        return 0;
+    }
+        fclose(arq);
+    } else {
+        cputsxy(METADEX,METADEY,"ERRO");
+        getch();
+        return 0;
+    }
+}
+
+int le_estrutura(SUBMARINO *submarino){
+    FILE *arq;
+    char nome_arq[MAXSTRING+4];
+    cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
+    gotoxy(METADEX,METADEY+1);
+    gets(nome_arq);
+    cputsxy(METADEX,METADEY,"                          ");
+    cputsxy(METADEX,METADEY+1,"                          ");
+    arq = fopen(nome_arq,"rb");
+    if (arq) {
+        if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
+                /*printf("Nome: %s\n",buffer.Nome);
+                printf("Idade: %d\n",buffer.Idade);
+                printf("Altura: %.2f\n\n",buffer.Altura);*/
+            return 1;
+
+        } else{
+            cputsxy(METADEX,METADEY,"ERRO");
+            getch();
+            return 0;
+            //fclose(arq); //fecha
+        }
+        fclose(arq);
+    } else {
+        cputsxy(METADEX,METADEY,"ERRO");
+        getch();
+        return 0;
+    }
+    //} // Fim do while
+    //fecha
+} // Fim da função
+
+
+void carregar_jogo() {
+    OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
+    SUBMARINO sub = {"",{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0};
+    TORPEDO torpedo = {sub.posicao, NAODISPARADO};
+    if (le_estrutura(&sub)) {
+        clrscr();
+        game_loop(&sub,obstaculos, &torpedo);
+    }
+}
+
+
 void novo_jogo() {
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
-    SUBMARINO sub = {{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0};
+    SUBMARINO sub = {"",{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0};
     TORPEDO torpedo = {sub.posicao, NAODISPARADO};
+    cputsxy(METADEX,METADEY,"Digite seu nome:");
+    gotoxy(METADEX,METADEY+1);
+    scanf("%8s",sub.nome);
+    fflush(stdin);
+    //fgets(sub.nome,MAXSTRING,stdin);// bota o \0 se digitar menos que 8 caracteres?
+    //cputsxy(METADEX,METADEY+2,sub.nome);
+    clrscr();
     game_loop(&sub,obstaculos, &torpedo);
 }
 
@@ -1089,7 +1179,7 @@ void menu2(){// outro menu
                 //move_sub(&sub);
                 break;
             case CARREGARJOGO:
-                //carregaJogo();
+                carregar_jogo();
                 break;
             case RECORDES:
                 //recordes();
