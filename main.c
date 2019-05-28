@@ -956,7 +956,7 @@ int tenta_guardar_estrutura(SUBMARINO submarino) {
     do {
         gravou = guarda_estrutura(submarino);
         if (!gravou) {
-            cputsxy(METADEX,METADEY,"Deseja tentar novamente(1-sim 2-nao):");
+            cputsxy(METADEX,METADEY,"Deseja tentar salvar novamente(1-sim 2-nao):");
             do{
                 opcao = getch();
             } while(opcao!=1 && opcao!=2);
