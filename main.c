@@ -951,7 +951,6 @@ void imprime_moldura_menu() {
 }
 
 int tenta_guardar_estrutura(SUBMARINO submarino) {
-    int i;
     int gravou;
     int opcao;
     do {
@@ -962,7 +961,7 @@ int tenta_guardar_estrutura(SUBMARINO submarino) {
                 opcao = getch();
             } while(opcao!=1 && opcao!=2);
         }
-    } while(i==1 && gravou==0);
+    } while(opcao==1 && gravou==0);
 }
 
 
