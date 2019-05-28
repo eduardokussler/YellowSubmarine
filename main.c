@@ -829,6 +829,13 @@ void junta_tudo(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino) {
     }
 }
 
+void imprime_submarino_controla_agua(SUBMARINO submarino) {
+    imprime_submarino(submarino);
+    if (submarino.posicao.Y==LINHAINICIAL) {
+        imprime_agua();
+    }
+}
+
 
 // acho q pular para cima e baixo esta certo mas para os lados incorreto, mas achei meio estranho mover uma so posicao para direita ou esquerda
 // pois a tela eh muito pequena para andar tao rapido assim
@@ -878,6 +885,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         imprime_obstaculos(obstaculos);
         */
         junta_tudo(obstaculos,torpedo,submarino);
+        imprime_submarino_controla_agua(*submarino);
         desenha_torpedo(torpedo, *submarino);
         resgatou_mergulhadores(submarino);
         atualiza_oxigenio_submarino(submarino);
