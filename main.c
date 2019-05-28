@@ -140,8 +140,6 @@ int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo);
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
-void imprime_submarino_controla_colisao_inimigo(SUBMARINO submarino,OBSTACULO obstaculo);
-void imprime_submarino_controla_colisao_mergulhador(SUBMARINO submarino,OBSTACULO obstaculo);
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     textcolor(LIGHTMAGENTA);
@@ -815,7 +813,6 @@ void junta_tudo(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino) {
     for (i = 0;i<NUMOBSTACULOS;i++) {
         if (obstaculos[i].tipo==SUBMARINOINIMIGO) {
             apaga_submarino_inimigo(obstaculos[i]);
-            imprime_submarino_controla_colisao_inimigo (*submarino,obstaculos[i]);
             atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
             testa_colisao_tela_inimigo(&obstaculos[i]);
             testa_colisao_torpedo(torpedo, obstaculos, submarino);
@@ -823,7 +820,6 @@ void junta_tudo(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino) {
             imprime_obstaculo_individual(obstaculos[i]);
         } else if (obstaculos[i].tipo==MERGULHADOR){
             apaga_mergulhador(obstaculos[i]);
-            imprime_submarino_controla_colisao_mergulhador(*submarino,obstaculos[i]);
             atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
             testa_colisao_tela_mergulhador(&obstaculos[i]);
             testa_colisao_torpedo(torpedo, obstaculos, submarino);
@@ -833,23 +829,17 @@ void junta_tudo(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino) {
     }
 }
 
-void imprime_submarino_controla_colisao_inimigo(SUBMARINO submarino,OBSTACULO obstaculo) {
-    if(colidiu_sub_inimigo(submarino.posicao,obstaculo.posicao)) {
-        imprime_submarino(submarino);
-    }
-}
-
-void imprime_submarino_controla_colisao_mergulhador(SUBMARINO submarino,OBSTACULO obstaculo) {
-    if(colidiu_sub_mergulhador(submarino.posicao,obstaculo.posicao)) {
-        imprime_submarino(submarino);
-    }
-}
-
-
 void imprime_submarino_controla_agua(SUBMARINO submarino) {
-    imprime_submarino(submarino);
+    //imprime_submarino(submarino);
+    /*
     if (submarino.posicao.Y==LINHAINICIAL) {
         imprime_agua();
+    } else {
+        imprime_submarino(submarino);
+    }*/
+
+    if (submarino.posicao.Y!=LINHAINICIAL) {
+        imprime_submarino(submarino);
     }
 }
 
@@ -902,7 +892,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         imprime_obstaculos(obstaculos);
         */
         junta_tudo(obstaculos,torpedo,submarino);
-        //imprime_submarino_controla_agua(*submarino);
+        imprime_submarino_controla_agua(*submarino);
         desenha_torpedo(torpedo, *submarino);
         resgatou_mergulhadores(submarino);
         atualiza_oxigenio_submarino(submarino);
