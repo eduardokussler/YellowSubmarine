@@ -956,11 +956,12 @@ int tenta_guardar_estrutura(SUBMARINO submarino) {
     do {
         gravou = guarda_estrutura(submarino);
         if (!gravou) {
-            cputsxy(METADEX,METADEY,"Deseja tentar salvar novamente(1-sim 2-nao):");
+            cputsxy(METADEX,METADEY+1,"Deseja tentar salvar novamente(1-sim 2-nao):");
             do{
                 opcao = getch();
             } while(opcao!=1 && opcao!=2);
         }
+        clrscr();
     } while(opcao==1 && gravou==0);
 }
 
@@ -978,13 +979,13 @@ int guarda_estrutura(SUBMARINO submarino) {
         fclose(arq);
         return 1;
     } else {
-        cputsxy(METADEX,METADEY,"ERRO");
+        cputsxy(METADEX,METADEY,"Erro ao salvar o jogo");
         fclose(arq);
         //getch();
         return 0;
     }
     } else {
-        cputsxy(METADEX,METADEY,"ERRO");
+        cputsxy(METADEX,METADEY,"Erro ao salvar o jogo");
         //getch();
         return 0;
     }
