@@ -294,8 +294,8 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
     int i;
     apaga_obstaculos(obstaculos);// tira os obstaculos da tela
     while(submarino->posicao.Y<LINHA2-1) {// vai at� a linha antes da moldura
-        for (i = 0;i<4;i++) {
-            if (i%3) {
+        for (i = 0;i<4;i++) {  
+            if (i%3) { 
                 if (submarino->posicao.X-1>COLUNA1) {
                     submarino->posicao.X--;
                 }
@@ -309,6 +309,7 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
             apaga_submarino(*submarino);
         }
         submarino->posicao.Y+=ALTURASUBMARINO;
+        MessageBeep(MB_ICONWARNING); 
     }
     clrscr();
     cputsxy(METADEX,METADEY,"GAME OVER");
@@ -598,6 +599,7 @@ void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
 
 
 void respawn_submarino(SUBMARINO *submarino) {
+    MessageBeep(MB_ICONWARNING);   
     if (submarino->vidas>0) {
         apaga_submarino(*submarino);
         submarino->posicao.X = COLUNAINICIAL;
