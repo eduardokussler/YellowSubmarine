@@ -88,6 +88,7 @@
 #define PENALIDADEMORTEMERGULHADOR 5
 
 #define PENALIDADETORPEDO 5
+#define SALVANDOJOGO 100
 #define MAXSTRING 9//8 letras e o \0
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
 // se tem um ponteiro para a estrutura usa estrutura_pointeiro->atributo ex: ponteiro_para_submarino_do_kuss_kussler->orientacao
@@ -954,15 +955,17 @@ int tenta_guardar_estrutura(SUBMARINO submarino) {
     int gravou;
     int opcao;
     do {
+        Sleep(SALVANDOJOGO);
         gravou = guarda_estrutura(submarino);
         if (!gravou) {
-            cputsxy(METADEX,METADEY+1,"Deseja tentar salvar novamente(1-sim 2-nao):");
+            cputsxy(METADEX,METADEY+1,"Deseja tentar salvar novamente:");
+            cputsxy(METADEX,METADEY+2,"(s-sim n-nao)");
             do{
                 opcao = getch();
-            } while(opcao!=1 && opcao!=2);
+            } while(opcao!='s' && opcao!='n');
         }
         clrscr();
-    } while(opcao==1 && gravou==0);
+    } while(opcao=='s' && gravou==0);
 }
 
 
