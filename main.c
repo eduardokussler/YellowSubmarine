@@ -145,6 +145,7 @@ int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
 int guarda_estrutura(SUBMARINO submarino);
+int tenta_guardar_estrutura(SUBMARINO submarino);
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     textcolor(LIGHTMAGENTA);
@@ -909,7 +910,8 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     if (submarino->vidas==0) {
         animacao_sem_vidas(submarino,obstaculos);
     } else {
-        guarda_estrutura(*submarino);
+        //guarda_estrutura(*submarino);
+        tenta_guardar_estrutura(*submarino);
     }
     clrscr();
 }
@@ -948,11 +950,19 @@ void imprime_moldura_menu() {
 
 }
 
-int tenta_guardar_estrutura(SUBMARINO *submarino) {
-    
-    while() {
-        
-    }
+int tenta_guardar_estrutura(SUBMARINO submarino) {
+    int i;
+    int gravou;
+    int opcao;
+    do {
+        gravou = guarda_estrutura(submarino);
+        if (!gravou) {
+            cputsxy(METADEX,METADEY,"Deseja tentar novamente(1-sim 2-nao):");
+            do{
+                opcao = getch();
+            } while(opcao!=1 && opcao!=2);
+        }
+    } while(i==1 && gravou==0);
 }
 
 
@@ -966,16 +976,17 @@ int guarda_estrutura(SUBMARINO submarino) {
     if (arq) {
     if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
             //printf("DALE");
+        fclose(arq);
         return 1;
     } else {
         cputsxy(METADEX,METADEY,"ERRO");
-        getch();
+        fclose(arq);
+        //getch();
         return 0;
     }
-        fclose(arq);
     } else {
         cputsxy(METADEX,METADEY,"ERRO");
-        getch();
+        //getch();
         return 0;
     }
 }
