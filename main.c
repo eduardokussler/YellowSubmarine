@@ -89,7 +89,8 @@
 
 #define PENALIDADETORPEDO 5
 #define SALVANDOJOGO 100
-#define MAXSTRING 9//8 letras e o \0
+#define MAXSTRINGNOME 9//8 letras e o \0
+#define MAXSTRINGARQ (MAXSTRINGNOME+4)//nome do jogador e .bin e \0
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
 // se tem um ponteiro para a estrutura usa estrutura_pointeiro->atributo ex: ponteiro_para_submarino_do_kuss_kussler->orientacao
 // se tem um vetor de obstaculos por exemplo e quer acessar atributos de cada e isso esta dentro da funcao
@@ -99,7 +100,7 @@
 // to fingindo q sei o q to fazendo
 // parece que jatem o tipo COORDENADA na conio
 typedef struct  {
-    char nome[MAXSTRING];
+    char nome[MAXSTRINGNOME];
     COORD posicao;
     int orientacao;// 1 direita 0 esquerda?
     int vidas;
@@ -973,7 +974,7 @@ int tenta_guardar_estrutura(SUBMARINO submarino) {
 
 int guarda_estrutura(SUBMARINO submarino) {
     FILE *arq;
-    char nome[MAXSTRING+4];
+    char nome[MAXSTRINGARQ];
     strcpy(nome,submarino.nome);
     strcat(nome,".bin");
     arq = fopen(nome,"wb");
@@ -998,7 +999,7 @@ int guarda_estrutura(SUBMARINO submarino) {
 
 int le_estrutura(SUBMARINO *submarino){
     FILE *arq;
-    char nome_arq[MAXSTRING+4];
+    char nome_arq[MAXSTRINGARQ];
     cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
     gotoxy(METADEX,METADEY+1);
     gets(nome_arq);
