@@ -91,6 +91,7 @@
 #define SALVANDOJOGO 100
 #define MAXSTRINGNOME 9//8 letras e o \0
 #define MAXSTRINGARQ (MAXSTRINGNOME+4)//nome do jogador e .bin e \0
+#define NUMRECORDES 10 //Numero maximo de pontuacoes que sera mostrada na funcao recorde
 // se tem a estrutura mesmo e nao um ponteiro para acessar um atributo usa estrutura_mesmo.atributo ex: submarino_do_kuss_kussler.orientacao
 // se tem um ponteiro para a estrutura usa estrutura_pointeiro->atributo ex: ponteiro_para_submarino_do_kuss_kussler->orientacao
 // se tem um vetor de obstaculos por exemplo e quer acessar atributos de cada e isso esta dentro da funcao
@@ -295,8 +296,8 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
     int i;
     apaga_obstaculos(obstaculos);// tira os obstaculos da tela
     while(submarino->posicao.Y<LINHA2-1) {// vai at� a linha antes da moldura
-        for (i = 0;i<4;i++) {  
-            if (i%3) { 
+        for (i = 0;i<4;i++) {
+            if (i%3) {
                 if (submarino->posicao.X-1>COLUNA1) {
                     submarino->posicao.X--;
                 }
@@ -310,7 +311,7 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
             apaga_submarino(*submarino);
         }
         submarino->posicao.Y+=ALTURASUBMARINO;
-        MessageBeep(MB_ICONWARNING); 
+        MessageBeep(MB_ICONWARNING);
     }
     clrscr();
     cputsxy(METADEX,METADEY,"GAME OVER");
@@ -600,7 +601,7 @@ void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
 
 
 void respawn_submarino(SUBMARINO *submarino) {
-    MessageBeep(MB_ICONWARNING);   
+    MessageBeep(MB_ICONWARNING);
     if (submarino->vidas>0) {
         apaga_submarino(*submarino);
         submarino->posicao.X = COLUNAINICIAL;
@@ -853,6 +854,17 @@ void imprime_submarino_controla_agua(SUBMARINO submarino) {
     }
 }
 
+void guarda_pontuacao(SUBMARINO sub){
+    FILE *arq;
+    while((arq = fopen("recordes.txt", "a")) == NULL){
+        arq = fopen("recordes.txt", "a");
+    }
+    fprintf(arq, "%s %d \n", sub.nome, sub.pontuacao);
+    fclose(arq);
+
+
+}
+
 
 // acho q pular para cima e baixo esta certo mas para os lados incorreto, mas achei meio estranho mover uma so posicao para direita ou esquerda
 // pois a tela eh muito pequena para andar tao rapido assim
@@ -913,6 +925,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     } while(a!=ESC && submarino->vidas>0);
     if (submarino->vidas==0) {
         animacao_sem_vidas(submarino,obstaculos);
+        guarda_pontuacao(*submarino);
     } else {
         //guarda_estrutura(*submarino);
         tenta_guardar_estrutura(*submarino);
@@ -1170,6 +1183,38 @@ void imprime_seta_inicial() {
     textcolor(WHITE);
 }
 
+void buscaNomePontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[]){
+    FILE *arq;
+    int i = 0;
+    int tentativas = 0;
+    while((arq = fopen("recordes.txt", "r")) == NULL && tentativas < 10){
+        arq = fopen("recordes.txt", "r");
+        tentativas++;
+    }
+    if(tentativas < 10){
+        while(!feof(arq)){
+            fscanf(arq,"%s", nomes[i]);
+            fscanf(arq, "%d", &pontuacao[i]);
+            i++;
+        }
+        fclose(arq);
+    }
+}
+
+
+
+void recordes(){
+    int resp;
+    char nomes[NUMRECORDES][MAXSTRINGNOME];
+    int pontuacoes[NUMRECORDES];
+    buscaNomePontuacao(nomes, pontuacoes);
+    mostraTabelaRecordes(nomes,pontuacoes);
+
+    do{
+        resp = getch();
+    }while(resp != ESC);
+}
+
 
 void menu2(){// outro menu
     char resp;
@@ -1199,7 +1244,7 @@ void menu2(){// outro menu
                 carregar_jogo();
                 break;
             case RECORDES:
-                //recordes();
+                recordes();
                 break;
             case CREDITOS:
                 creditos();
