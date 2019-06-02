@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio2.h>
+#include <string.h>
 #include <windows.h>
 #include <time.h>
 #include <stdlib.h>
@@ -147,8 +148,8 @@ int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo);
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
-int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
-void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
+int guarda_estrutura(SUBMARINO submarino);
+int tenta_guardar_estrutura(SUBMARINO submarino);
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     textcolor(LIGHTMAGENTA);
@@ -854,13 +855,85 @@ void imprime_submarino_controla_agua(SUBMARINO submarino) {
     }
 }
 
+void buscaNomesEPontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[]){
+    FILE *arq;
+    int i = 0;
+    int tentativas = 0;
+    while((arq = fopen("recordes.txt", "r")) == NULL && tentativas < 10){
+        arq = fopen("recordes.txt", "r");
+        tentativas++;
+    }
+    if(tentativas < 10){
+        while(!feof(arq)){
+            fscanf(arq,"%s", &nomes[i]);
+            fscanf(arq, "%d", &pontuacao[i]);
+            i++;
+        }
+        fclose(arq);
+    }else{
+        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
+    }
+}
+
+void bubblesort(){
+    FILE *arq;
+    int pontuacao[NUMRECORDES + 1];//no arquivo de texto, o maximo de registro possivel é o NUMRECORDES + 1(que eh o novo recorde recem adicionado)
+    char nomes[NUMRECORDES + 1][MAXSTRINGNOME];
+    int i;
+    int tentativas = 0;
+    int ind, fim, sinal, aux;
+    char auxStr[MAXSTRINGNOME];
+    fim = NUMRECORDES;
+    buscaNomesEPontuacao(nomes, pontuacao);
+    do{
+        sinal = 0;
+        for(ind = 0; ind < fim; ind++){
+            if(pontuacao[ind] < pontuacao[ind + 1]){
+                aux = pontuacao[ind];
+                strcpy(auxStr, nomes[ind]);//trocando de posicao os nomes
+                pontuacao[ind] = pontuacao[ind+1];
+                strcpy(nomes[ind], nomes[ind + 1]);
+                pontuacao[ind + 1] = aux;
+                strcpy(nomes[ind + 1], auxStr);
+                sinal = 1;
+            }
+        }
+        fim--;
+
+    }while(sinal == 1 && fim > 1);
+
+    while((arq = fopen("recordes.txt", "w")) == NULL && tentativas < 10){
+        arq = fopen("recordes.txt", "w");
+        tentativas++;
+    }
+    if(tentativas < 10){
+        for(i = 0; i < NUMRECORDES; i++){
+            fprintf(arq, "%s %d\n", nomes[i], pontuacao[i]);
+        }
+        fclose(arq);
+    }else{
+        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO DURANTE O SORTING");
+    }
+
+
+
+}
+
 void guarda_pontuacao(SUBMARINO sub){
     FILE *arq;
-    while((arq = fopen("recordes.txt", "a")) == NULL){
+    int tentativas = 0;
+    while((arq = fopen("recordes.txt", "a")) == NULL && tentativas < 10){
         arq = fopen("recordes.txt", "a");
+        tentativas++;
     }
-    fprintf(arq, "%s %d \n", sub.nome, sub.pontuacao);
-    fclose(arq);
+    if(tentativas < 10){
+        fprintf(arq, "%s %d\n", sub.nome, sub.pontuacao);
+        fclose(arq);
+        bubblesort();
+    }else{
+        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
+    }
+
 
 
 }
@@ -884,7 +957,6 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     INTERFACEJOGO interface_jogo = {submarino->vidas, submarino->mergulhadores, submarino->oxigenio, submarino->pontuacao,submarino->tempo};
     imprime_moldura();
     imprime_submarino(*submarino);// imprime o submarino inicialmente
-    imprime_obstaculos(obstaculos);//para caso tenha carregado o jogo imprima os obstaculos do load
     imprime_agua();
     imprime_interface(&interface_jogo);
     do {
@@ -929,7 +1001,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         guarda_pontuacao(*submarino);
     } else {
         //guarda_estrutura(*submarino);
-        tenta_guardar_estrutura(*submarino,obstaculos,*torpedo);
+        tenta_guardar_estrutura(*submarino);
     }
     clrscr();
 }
@@ -968,47 +1040,25 @@ void imprime_moldura_menu() {
 
 }
 
-
-
-
-
-
-void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
-    int gravou = 0;
+int tenta_guardar_estrutura(SUBMARINO submarino) {
+    int gravou;
     int opcao;
-    char arquivo[MAXSTRINGARQ];
-    clrscr();
-    cputsxy(METADEX,METADEY+1,"Deseja salvar o jogo:");
-    cputsxy(METADEX,METADEY+2,"(s-sim n-nao)");
-    do{
-         opcao = getch();
-    } while(opcao!='s' && opcao!='n');
-
-
-    while(opcao=='s' && gravou==0) {
+    do {
         Sleep(SALVANDOJOGO);
-        gravou = guarda_estrutura(submarino,obstaculos,torpedo);
+        gravou = guarda_estrutura(submarino);
         if (!gravou) {
             cputsxy(METADEX,METADEY+1,"Deseja tentar salvar novamente:");
             cputsxy(METADEX,METADEY+2,"(s-sim n-nao)");
             do{
                 opcao = getch();
             } while(opcao!='s' && opcao!='n');
-            clrscr();
-        } else {
-            strcpy(arquivo,submarino.nome);
-            strcat(arquivo,".bin");
-            clrscr();
-            cputsxy(METADEX,METADEY,"JOGO SALVO EM");
-            cputsxy(METADEX,METADEY+1,arquivo);
-            getch();
         }
-    } 
+        clrscr();
+    } while(opcao=='s' && gravou==0);
 }
 
 
-//int guarda_estrutura(SUBMARINO submarino) {
-int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
+int guarda_estrutura(SUBMARINO submarino) {
     FILE *arq;
     char nome[MAXSTRINGARQ];
     strcpy(nome,submarino.nome);
@@ -1016,8 +1066,7 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
     arq = fopen(nome,"wb");
     clrscr();
     if (arq) {
-    //if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
-    if (fwrite(&submarino,sizeof(SUBMARINO),1,arq) == 1 && fwrite(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fwrite(&torpedo,sizeof(TORPEDO),1,arq) == 1) {
+    if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
             //printf("DALE");
         fclose(arq);
         return 1;
@@ -1034,8 +1083,7 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
     }
 }
 
-//int le_estrutura(SUBMARINO *submarino){
-int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
+int le_estrutura(SUBMARINO *submarino){
     FILE *arq;
     char nome_arq[MAXSTRINGARQ];
     cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
@@ -1045,9 +1093,10 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     cputsxy(METADEX,METADEY+1,"                          ");
     arq = fopen(nome_arq,"rb");
     if (arq) {
-        //if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
-        if (fread(submarino,sizeof(SUBMARINO),1,arq) == 1 && fread(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fread(torpedo,sizeof(TORPEDO),1,arq) == 1) {
-
+        if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
+                /*printf("Nome: %s\n",buffer.Nome);
+                printf("Idade: %d\n",buffer.Idade);
+                printf("Altura: %.2f\n\n",buffer.Altura);*/
             return 1;
 
         } else{
@@ -1071,8 +1120,7 @@ void carregar_jogo() {
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
     SUBMARINO sub = {"",{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0};
     TORPEDO torpedo = {sub.posicao, NAODISPARADO};
-    //if (le_estrutura(&sub)) {
-    if (le_estrutura(&sub,obstaculos,&torpedo)) {
+    if (le_estrutura(&sub)) {
         clrscr();
         game_loop(&sub,obstaculos, &torpedo);
     }
@@ -1223,9 +1271,21 @@ void buscaNomePontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[])
             i++;
         }
         fclose(arq);
+    }else{
+        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
     }
 }
 
+void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes[]){
+    int i;
+    for(i = 0; i < NUMRECORDES; i++){
+        cputsxy(METADEX, METADEY+i, nomes[i]);
+    }
+    for(i = 0; i < NUMRECORDES; i++){
+        gotoxy(METADEX+10, METADEY+i);
+        printf("%d", pontuacoes[i]);
+    }
+}
 
 
 void recordes(){
@@ -1233,8 +1293,9 @@ void recordes(){
     char nomes[NUMRECORDES][MAXSTRINGNOME];
     int pontuacoes[NUMRECORDES];
     buscaNomePontuacao(nomes, pontuacoes);
-    //mostraTabelaRecordes(nomes,pontuacoes);
-
+    mostraTabelaRecordes(nomes, pontuacoes);
+    //printf("NOME %s", nomes[0]);
+    //printf("PONTUACAO: %d", pontuacoes[0]);
     do{
         resp = getch();
     }while(resp != ESC);
