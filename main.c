@@ -147,8 +147,8 @@ int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo);
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
-int guarda_estrutura(SUBMARINO submarino);
-int tenta_guardar_estrutura(SUBMARINO submarino);
+int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
+void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     textcolor(LIGHTMAGENTA);
@@ -884,6 +884,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     INTERFACEJOGO interface_jogo = {submarino->vidas, submarino->mergulhadores, submarino->oxigenio, submarino->pontuacao,submarino->tempo};
     imprime_moldura();
     imprime_submarino(*submarino);// imprime o submarino inicialmente
+    imprime_obstaculos(obstaculos);//para caso tenha carregado o jogo imprima os obstaculos do load
     imprime_agua();
     imprime_interface(&interface_jogo);
     do {
@@ -928,7 +929,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         guarda_pontuacao(*submarino);
     } else {
         //guarda_estrutura(*submarino);
-        tenta_guardar_estrutura(*submarino);
+        tenta_guardar_estrutura(*submarino,obstaculos,*torpedo);
     }
     clrscr();
 }
@@ -967,25 +968,47 @@ void imprime_moldura_menu() {
 
 }
 
-int tenta_guardar_estrutura(SUBMARINO submarino) {
-    int gravou;
+
+
+
+
+
+void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
+    int gravou = 0;
     int opcao;
-    do {
+    char arquivo[MAXSTRINGARQ];
+    clrscr();
+    cputsxy(METADEX,METADEY+1,"Deseja salvar o jogo:");
+    cputsxy(METADEX,METADEY+2,"(s-sim n-nao)");
+    do{
+         opcao = getch();
+    } while(opcao!='s' && opcao!='n');
+
+
+    while(opcao=='s' && gravou==0) {
         Sleep(SALVANDOJOGO);
-        gravou = guarda_estrutura(submarino);
+        gravou = guarda_estrutura(submarino,obstaculos,torpedo);
         if (!gravou) {
             cputsxy(METADEX,METADEY+1,"Deseja tentar salvar novamente:");
             cputsxy(METADEX,METADEY+2,"(s-sim n-nao)");
             do{
                 opcao = getch();
             } while(opcao!='s' && opcao!='n');
+            clrscr();
+        } else {
+            strcpy(arquivo,submarino.nome);
+            strcat(arquivo,".bin");
+            clrscr();
+            cputsxy(METADEX,METADEY,"JOGO SALVO EM");
+            cputsxy(METADEX,METADEY+1,arquivo);
+            getch();
         }
-        clrscr();
-    } while(opcao=='s' && gravou==0);
+    } 
 }
 
 
-int guarda_estrutura(SUBMARINO submarino) {
+//int guarda_estrutura(SUBMARINO submarino) {
+int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
     FILE *arq;
     char nome[MAXSTRINGARQ];
     strcpy(nome,submarino.nome);
@@ -993,7 +1016,8 @@ int guarda_estrutura(SUBMARINO submarino) {
     arq = fopen(nome,"wb");
     clrscr();
     if (arq) {
-    if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
+    //if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
+    if (fwrite(&submarino,sizeof(SUBMARINO),1,arq) == 1 && fwrite(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fwrite(&torpedo,sizeof(TORPEDO),1,arq) == 1) {
             //printf("DALE");
         fclose(arq);
         return 1;
@@ -1010,7 +1034,8 @@ int guarda_estrutura(SUBMARINO submarino) {
     }
 }
 
-int le_estrutura(SUBMARINO *submarino){
+//int le_estrutura(SUBMARINO *submarino){
+int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     FILE *arq;
     char nome_arq[MAXSTRINGARQ];
     cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
@@ -1020,10 +1045,9 @@ int le_estrutura(SUBMARINO *submarino){
     cputsxy(METADEX,METADEY+1,"                          ");
     arq = fopen(nome_arq,"rb");
     if (arq) {
-        if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
-                /*printf("Nome: %s\n",buffer.Nome);
-                printf("Idade: %d\n",buffer.Idade);
-                printf("Altura: %.2f\n\n",buffer.Altura);*/
+        //if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
+        if (fread(submarino,sizeof(SUBMARINO),1,arq) == 1 && fread(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fread(torpedo,sizeof(TORPEDO),1,arq) == 1) {
+
             return 1;
 
         } else{
@@ -1047,7 +1071,8 @@ void carregar_jogo() {
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
     SUBMARINO sub = {"",{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0};
     TORPEDO torpedo = {sub.posicao, NAODISPARADO};
-    if (le_estrutura(&sub)) {
+    //if (le_estrutura(&sub)) {
+    if (le_estrutura(&sub,obstaculos,&torpedo)) {
         clrscr();
         game_loop(&sub,obstaculos, &torpedo);
     }
@@ -1208,7 +1233,7 @@ void recordes(){
     char nomes[NUMRECORDES][MAXSTRINGNOME];
     int pontuacoes[NUMRECORDES];
     buscaNomePontuacao(nomes, pontuacoes);
-    mostraTabelaRecordes(nomes,pontuacoes);
+    //mostraTabelaRecordes(nomes,pontuacoes);
 
     do{
         resp = getch();
