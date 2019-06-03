@@ -867,7 +867,7 @@ void buscaNomesEPontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[
     }
     if(tentativas < 10){
         while(!feof(arq)){
-            fscanf(arq,"%s", &nomes[i]);
+            fscanf(arq,"%s", nomes[i]);
             fscanf(arq, "%d", &pontuacao[i]);
             i++;
         }
@@ -1309,13 +1309,35 @@ void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes
     }
 }
 
+void preencherArquivo(FILE *arq){
+    char nome[] = "null";
+    int pontuacao = 0;
+    int i;
+    for(i = 0; i < NUMRECORDES; i++){
+        fprintf(arq, "%s %d\n", nome, pontuacao);
+    }
+}
 
 void recordes(){
     int resp;
     char nomes[NUMRECORDES][MAXSTRINGNOME];
     int pontuacoes[NUMRECORDES];
-    buscaNomePontuacao(nomes, pontuacoes);
-    mostraTabelaRecordes(nomes, pontuacoes);
+    FILE *arq;
+    arq = fopen("recordes.txt", "r"); //so teste para verificar se o arquivo existe
+    if(arq != NULL){
+        fclose(arq);
+        buscaNomePontuacao(nomes, pontuacoes);
+        mostraTabelaRecordes(nomes, pontuacoes);
+    }else{
+        arq = fopen("recordes.txt", "w");
+        if(arq == NULL){
+            printf("ERRO AO CARREGAR O ARQUIVO");
+        }else{
+            preencherArquivo(arq);
+            mostraTabelaRecordes(nomes, pontuacoes);
+            fclose(arq);
+        }
+    }
     //printf("NOME %s", nomes[0]);
     //printf("PONTUACAO: %d", pontuacoes[0]);
     do{
