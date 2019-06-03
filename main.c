@@ -153,7 +153,7 @@ int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo);
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
-void copia_vetor(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam);
+void copia_vetor_obstaculos(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam);
 //int guarda_estrutura(SUBMARINO submarino);
 //int tenta_guardar_estrutura(SUBMARINO submarino);
 int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
@@ -1097,7 +1097,7 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
     //if (fwrite(&submarino,sizeof(SUBMARINO),1,arq) == 1 && fwrite(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fwrite(&torpedo,sizeof(TORPEDO),1,arq) == 1) {
         jogo.submarino = submarino;
         jogo.torpedo = torpedo;
-        copia_vetor(jogo.obstaculos,obstaculos,NUMOBSTACULOS);
+        copia_vetor_obstaculos(jogo.obstaculos,obstaculos,NUMOBSTACULOS);
         if (fwrite(&jogo,sizeof(JOGO),1,arq) == 1) {
             //printf("DALE");
         fclose(arq);
@@ -1115,7 +1115,7 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
     }
 }
 
-void copia_vetor(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam) {// vetor1 eh destino
+void copia_vetor_obstaculos(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam) {// vetor1 eh destino
     int i;
     for (i = 0; i<tam; i++) {
         vetor1[i] = vetor2[i];
@@ -1141,7 +1141,7 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
                 printf("Altura: %.2f\n\n",buffer.Altura);*/
             *submarino = jogo.submarino;
             *torpedo = jogo.torpedo;
-            copia_vetor(obstaculos,jogo.obstaculos,NUMOBSTACULOS);
+            copia_vetor_obstaculos(obstaculos,jogo.obstaculos,NUMOBSTACULOS);
             return 1;
 
         } else{
