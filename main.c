@@ -77,7 +77,7 @@
 #define CREDITOS 3
 #define SAIR 4
 
-#define MERGULHADORESMAXIMOS 3
+#define MERGULHADORESMAXIMOS 5
 #define VIDASINICIAIS 3
 #define OXIGENIOMAXIMO 30
 //#define BLOCOSDEOXIGENIO (1000/TEMPODELOOP)
@@ -136,6 +136,11 @@ typedef struct  {
     int status;//0 esquerda, 1 direita, 2 nao disparado
 } TORPEDO;
 
+typedef struct{
+    SUBMARINO submarino;
+    OBSTACULO obstaculos[NUMOBSTACULOS];
+    TORPEDO torpedo;
+} JOGO;
 
 
 void menu();
@@ -148,6 +153,7 @@ int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo);
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_sub_mergulhador(COORD sub, COORD obstaculo );
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
+void copia_vetor(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam);
 //int guarda_estrutura(SUBMARINO submarino);
 //int tenta_guardar_estrutura(SUBMARINO submarino);
 int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
@@ -1074,12 +1080,13 @@ void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO 
             cputsxy(METADEX,METADEY+1,arquivo);
             getch();
         }
-    } 
+    }
 }
 
 
 int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
     FILE *arq;
+    JOGO jogo;
     char nome[MAXSTRINGARQ];
     strcpy(nome,submarino.nome);
     strcat(nome,".bin");
@@ -1087,7 +1094,11 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
     clrscr();
     if (arq) {
     //if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
-    if (fwrite(&submarino,sizeof(SUBMARINO),1,arq) == 1 && fwrite(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fwrite(&torpedo,sizeof(TORPEDO),1,arq) == 1) {
+    //if (fwrite(&submarino,sizeof(SUBMARINO),1,arq) == 1 && fwrite(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fwrite(&torpedo,sizeof(TORPEDO),1,arq) == 1) {
+        jogo.submarino = submarino;
+        jogo.torpedo = torpedo;
+        copia_vetor(jogo.obstaculos,obstaculos,NUMOBSTACULOS);
+        if (fwrite(&jogo,sizeof(JOGO),1,arq) == 1) {
             //printf("DALE");
         fclose(arq);
         return 1;
@@ -1104,8 +1115,17 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
     }
 }
 
+void copia_vetor(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam) {// vetor1 eh destino
+    int i;
+    for (i = 0; i<tam; i++) {
+        vetor1[i] = vetor2[i];
+    }
+}
+
+
 int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     FILE *arq;
+    JOGO jogo;
     char nome_arq[MAXSTRINGARQ];
     cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
     gotoxy(METADEX,METADEY+1);
@@ -1115,10 +1135,13 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     arq = fopen(nome_arq,"rb");
     if (arq) {
         //if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
-        if (fread(submarino,sizeof(SUBMARINO),1,arq) == 1 && fread(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fread(torpedo,sizeof(TORPEDO),1,arq) == 1) {
+        if (fread(&jogo,sizeof(JOGO),1,arq) == 1) {
                 /*printf("Nome: %s\n",buffer.Nome);
                 printf("Idade: %d\n",buffer.Idade);
                 printf("Altura: %.2f\n\n",buffer.Altura);*/
+            *submarino = jogo.submarino;
+            *torpedo = jogo.torpedo;
+            copia_vetor(obstaculos,jogo.obstaculos,NUMOBSTACULOS);
             return 1;
 
         } else{
