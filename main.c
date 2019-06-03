@@ -863,7 +863,7 @@ void imprime_submarino_controla_agua(SUBMARINO submarino) {
     }
 }
 
-void buscaNomesEPontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[]){
+void buscaNomesEPontuacao(char nomes[NUMRECORDES+1][MAXSTRINGNOME], int pontuacao[]){
     FILE *arq;
     int i = 0;
     int tentativas = 0;
@@ -908,7 +908,7 @@ void bubblesort(){
         }
         fim--;
 
-    }while(sinal == 1 && fim > 1);
+    }while(sinal == 1 && fim > 0);
 
     while((arq = fopen("recordes.txt", "w")) == NULL && tentativas < 10){
         arq = fopen("recordes.txt", "w");
@@ -1301,24 +1301,26 @@ void imprime_seta_inicial() {
     textcolor(WHITE);
 }
 
-void buscaNomePontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[]){
-    FILE *arq;
+void buscaNomePontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[],FILE **arq){
     int i = 0;
-    int tentativas = 0;
-    while((arq = fopen("recordes.txt", "r")) == NULL && tentativas < 10){
+    //int tentativas = 0;
+    /*
+    while((*arq = fopen("recordes.txt", "r")) == NULL && tentativas < 10){
         arq = fopen("recordes.txt", "r");
         tentativas++;
-    }
-    if(tentativas < 10){
-        while(!feof(arq)){
-            fscanf(arq,"%s", nomes[i]);
-            fscanf(arq, "%d", &pontuacao[i]);
+    }*/
+    //if(tentativas < 10){
+    rewind(*arq);
+        while(!feof(*arq)){
+            fscanf(*arq,"%s", nomes[i]);
+            fscanf(*arq, "%d", &pontuacao[i]);
             i++;
         }
-        fclose(arq);
-    }else{
-        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
-    }
+        //fclose(arq);
+        fflush(*arq);
+    //}else{
+    //    cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
+    //}
 }
 
 void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes[]){
@@ -1332,13 +1334,14 @@ void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes
     }
 }
 
-void preencherArquivo(FILE *arq){
+void preencherArquivo(FILE **arq){
     char nome[] = "null";
     int pontuacao = 0;
     int i;
     for(i = 0; i < NUMRECORDES; i++){
-        fprintf(arq, "%s %d\n", nome, pontuacao);
+        fprintf(*arq, "%s %d\n", nome, pontuacao);
     }
+    fflush(*arq);
 }
 
 void recordes(){
@@ -1348,17 +1351,18 @@ void recordes(){
     FILE *arq;
     arq = fopen("recordes.txt", "r"); //so teste para verificar se o arquivo existe
     if(arq != NULL){
+        buscaNomePontuacao(nomes, pontuacoes, &arq);
         fclose(arq);
-        buscaNomePontuacao(nomes, pontuacoes);
         mostraTabelaRecordes(nomes, pontuacoes);
     }else{
-        arq = fopen("recordes.txt", "w");
+        arq = fopen("recordes.txt", "w+");
         if(arq == NULL){
             printf("ERRO AO CARREGAR O ARQUIVO");
         }else{
-            preencherArquivo(arq);
-            mostraTabelaRecordes(nomes, pontuacoes);
+            preencherArquivo(&arq);
+            buscaNomePontuacao(nomes, pontuacoes,&arq);
             fclose(arq);
+            mostraTabelaRecordes(nomes, pontuacoes);
         }
     }
     //printf("NOME %s", nomes[0]);
