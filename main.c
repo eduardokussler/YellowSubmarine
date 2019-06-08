@@ -12,7 +12,7 @@
 #define LINHA2 25// linha final da moldura da tela
 #define COLUNA1 1// coluna inicial da moldura da tela
 #define COLUNA2 80// coluna final da moldura da tela
-#define LINHAINICIAL 6// linha inicial do submarino controlado pelo jogador 
+#define LINHAINICIAL 6// linha inicial do submarino controlado pelo jogador
 #define COLUNAINICIAL 36// coluna inicial do submarino controlado pelo jogador
 
 // provavelmente apenas uma das de baixo seram uteis pois se sei a porcentagem de um posso usar a de outro
@@ -35,7 +35,7 @@
 #define MERGULHADOR 2// 2 indica que o obstaculo eh um mergulhador
 #define SEMOBSTACULO 0// 0 indica que nao ha obstaculo na estrutura
 
-// 4 colunas para escrever mergulhador talvez seja util trocar para tres pelo mesmo motivo da altura sub 
+// 4 colunas para escrever mergulhador talvez seja util trocar para tres pelo mesmo motivo da altura sub
 #define COMPRIMENTOMERGULHADOR 4
 
 //2 colunas para escrever o torpedo
@@ -70,6 +70,7 @@
 #define SETAESQUERDA 75
 #define SETADIREITA 77
 #define ESPACO 32
+#define BACKSPACE 8
 
 #define SEGUNDO 1000//milissegundos
 
@@ -106,7 +107,7 @@ typedef struct  {
     COORD posicao;// posicao do submarino
     int orientacao;// orientacao do submarino (ESQUERDA ou DIREITA)
     int vidas;// numero de vidas restantes do jogador
-    int oxigenio;// quantidade de oxigenio restante 
+    int oxigenio;// quantidade de oxigenio restante
     int pontuacao;// pontuacao do jogador
     int mergulhadores;// numero de mergulhadores dentro do submarino atualmente
     unsigned long int tempo;// tempo sobrevivido em milissegundos
@@ -430,6 +431,26 @@ void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
     }
 }
 
+// le nome do jogador limita o numero de chars na tela para MAXSTRINGNOME - 1
+void le_nome_jogador(char *nome) {
+    //char intermed[MAXSTRINGNOME];
+    int i = 0;
+    char leitura;
+    gotoxy(METADEX,METADEY+1);
+    do {
+        leitura = getch();
+        if (leitura != ENTER && leitura != BACKSPACE && i != MAXSTRINGNOME -1) {
+            nome[i] = leitura;
+            putchxy(METADEX+i,METADEY+1,leitura);
+            i++;
+        } else if (leitura == BACKSPACE && i != 0) {
+            i--;
+            putchxy(METADEX+i,METADEY+1,'\0');
+        }
+    } while(i==0 || leitura!=ENTER);
+    nome[i] = '\0';
+}
+
 void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos, TORPEDO *torpedo) {
 
     if (kbhit()) {
@@ -615,7 +636,7 @@ void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
     }*/
 }
 
-// atualiza a pontuacao do jogador se ele estiver submerso 
+// atualiza a pontuacao do jogador se ele estiver submerso
 void atualiza_pontuacao_submerso(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
         //if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
@@ -825,12 +846,12 @@ void junta_tudo(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino) {
 }
 
 // imprime o submarino quando nao estiver na posicao inicial
-// usada porque percorremos o vetor de obstaculos em uma funcao so 
+// usada porque percorremos o vetor de obstaculos em uma funcao so
 // e eh possivel apagar um pedaco do sub dessa maneira
 // mas isso so acontece quando o sub estiver dentro dagua dai para evitar
 // um if para ver se se colidiu com todos obstaculos e caso colida imprimir
 // imprimi-se o sub sempre quando o sub estiver fora dagua
-void imprime_submarino_controla_agua(SUBMARINO submarino) {// 
+void imprime_submarino_controla_agua(SUBMARINO submarino) {//
     //imprime_submarino(submarino);
     /*
     if (submarino.posicao.Y==LINHAINICIAL) {
@@ -1146,7 +1167,7 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     //fecha
 } // Fim da função
 
-// carrega o jogo 
+// carrega o jogo
 void carregar_jogo() {
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
     SUBMARINO sub = {"",{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0};
@@ -1164,8 +1185,9 @@ void novo_jogo() {
     TORPEDO torpedo = {sub.posicao, NAODISPARADO};
     cputsxy(METADEX,METADEY,"Digite seu nome:");
     gotoxy(METADEX,METADEY+1);
-    scanf("%8s",sub.nome);
-    fflush(stdin);
+    //scanf("%8s",sub.nome);
+    le_nome_jogador(sub.nome);
+    //fflush(stdin);
     //fgets(sub.nome,MAXSTRING,stdin);// bota o \0 se digitar menos que 8 caracteres?
     //cputsxy(METADEX,METADEY+2,sub.nome);
     clrscr();
