@@ -8,12 +8,14 @@
 #include <math.h>
 
 #define NUMOBSTACULOS 8// numero de obstaculos do jogo, um obstaculo pode ser um submarino inimigo ou um mergulhador
+#define NUMOBSTACULOSMENU (NUMOBSTACULOS-2)
 #define LINHA1 1// linha inicial da moldura da tela
 #define LINHA2 25// linha final da moldura da tela
 #define COLUNA1 1// coluna inicial da moldura da tela
 #define COLUNA2 80// coluna final da moldura da tela
 #define LINHAINICIAL 6// linha inicial do submarino controlado pelo jogador
 #define COLUNAINICIAL 36// coluna inicial do submarino controlado pelo jogador
+#define COMPRIMENTOMENU 13// 13 linhas para escrever a maior string do menu carregar jogo
 
 // provavelmente apenas uma das de baixo seram uteis pois se sei a porcentagem de um posso usar a de outro
 // no codigo so usei porcentagme de mergulhadores
@@ -21,6 +23,7 @@
 #define PORCENTAGEMSUBMARINOSINIMIGOS 50// porcentagem de spawn dos submarinos inimigos
 
 #define TEMPODELOOP 40//tempo em milissegundos entre as atualizações na tela durante o jogo
+#define TEMPODELOOPMENU 60
 #define TEMPODEMORTE 80//tempo em milissegundos entre as atualizações na tela durante a animacao sem vidas
 
 #define LINHAINTERFACESUPERIOR LINHA1+2// linha que separa a linha inicial da moldura e a parte superior da interface do jogador
@@ -160,6 +163,20 @@ void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO 
 
 void imprime_submarino_inimigo(OBSTACULO submarino_inimigo) {// imprime sub inimigo uso do if pois depende da orientacao
     textcolor(LIGHTMAGENTA);
+    if (submarino_inimigo.orientacao) {// eh diferente de 0 logo direita
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___|O|___");
+        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,">\\________)");
+
+    } else {// eh zero logo esquerda
+        cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___|O|___");
+        cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,"(________/<");
+    }
+    textcolor(WHITE);
+}
+
+// imprime_submarino_inimigo na cor desejada
+void imprime_submarino_inimigo_cor(OBSTACULO submarino_inimigo,int cor) {
+    textcolor(cor);
     if (submarino_inimigo.orientacao) {// eh diferente de 0 logo direita
         cputsxy(submarino_inimigo.posicao.X+1,submarino_inimigo.posicao.Y-1,"___|O|___");
         cputsxy(submarino_inimigo.posicao.X,submarino_inimigo.posicao.Y,">\\________)");
@@ -337,6 +354,43 @@ void gera_obstaculos(OBSTACULO *obstaculo) {
                         obstaculo[i].posicao.X = SPAWNDIREITASUBMARINO;
                     }
                 }
+            }
+        }
+    }
+}
+// unica diferenca da versao normal eh q n pode gerar mergulhadores
+void gera_obstaculos_menu(OBSTACULO *obstaculo) {
+    int i;
+    int probabilidade_tipo;
+    int probabilidade_gerar;
+    int orientacao;
+    srand(time(0));
+    for(i = 0; i<NUMOBSTACULOSMENU;i++) {
+        probabilidade_tipo = rand()%100+1;
+         if (obstaculo[i].tipo==SEMOBSTACULO) {
+            probabilidade_gerar = rand()%2;
+            if (probabilidade_gerar) {/* 
+                if (probabilidade_tipo<=PORCENTAGEMMERGULHADORES) {
+                    orientacao = rand()%2;
+                    obstaculo[i].tipo = MERGULHADOR;
+                    obstaculo[i].orientacao = orientacao;
+                    obstaculo[i].posicao.Y = INICIOAGUA+i*ALTURASUBMARINO;
+                    if (orientacao) {
+                       obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO;
+                    } else {
+                        obstaculo[i].posicao.X = SPAWNDIREITAMERGULHADOR;
+                    }
+                } else if (probabilidade_tipo>PORCENTAGEMMERGULHADORES) {*/
+                    orientacao = rand()%2;
+                    obstaculo[i].tipo = SUBMARINOINIMIGO;
+                    obstaculo[i].orientacao = orientacao;
+                    obstaculo[i].posicao.Y = INICIOAGUA+(i+2)*ALTURASUBMARINO;
+                    if (orientacao) {
+                       obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO;
+                    } else {
+                        obstaculo[i].posicao.X = SPAWNDIREITASUBMARINO;
+                    }
+                //}
             }
         }
     }
@@ -802,6 +856,14 @@ void imprime_obstaculo_individual(OBSTACULO obstaculo) {
     }
 }
 
+void imprime_obstaculo_individual_cor(OBSTACULO obstaculo, int cor) {
+    if (obstaculo.tipo==SUBMARINOINIMIGO) {
+        imprime_submarino_inimigo_cor(obstaculo,cor);
+    } //else if(obstaculo.tipo==MERGULHADOR) {
+     //   imprime_mergulhador(obstaculo);
+    //}
+}
+
 // testa a colisao entre o submarino e um sub inimigo,caso colidam faz as atualizacoes necessarias
 void testa_colisao_submarino_inimigo(SUBMARINO *submarino, OBSTACULO *obstaculo) {
     if (colidiu_sub_inimigo(submarino->posicao,obstaculo->posicao) && obstaculo->tipo==SUBMARINOINIMIGO) {
@@ -842,6 +904,56 @@ void junta_tudo(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino) {
             testa_colisao_submarino_mergulhador(submarino,&obstaculos[i]);
             imprime_obstaculo_individual(obstaculos[i]);
         }
+    }
+}
+
+int colisao_menu_submarino(OBSTACULO obstaculo) {
+    int verifica_y, verifica_x1, verifica_x2, verifica_x3;
+    verifica_y = obstaculo.posicao.Y - (ALTURASUBMARINO-1)<=METADEY+4 && obstaculo.posicao.Y>=METADEY;
+    verifica_x1 = obstaculo.posicao.X <= METADEX-1 && obstaculo.posicao.X + COMPRIMENTOSUBMARINO - 1 >= METADEX-1;
+    verifica_x2 = obstaculo.posicao.X <= METADEX + COMPRIMENTOMENU -1 && obstaculo.posicao.X + COMPRIMENTOSUBMARINO - 1>= METADEX + COMPRIMENTOMENU -1;
+    verifica_x3 = obstaculo.posicao.X <= METADEX + COMPRIMENTOMENU -1 && obstaculo.posicao.X + COMPRIMENTOMERGULHADOR - 1>= METADEX-1;
+    if (verifica_y && (verifica_x1 || verifica_x2 || verifica_x3)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int colisao_menu_mergulhador(OBSTACULO obstaculo) {
+    int verifica_y, verifica_x1, verifica_x2;
+    verifica_y = obstaculo.posicao.Y <=METADEY+4 && obstaculo.posicao.Y>=METADEY;
+    verifica_x1 = obstaculo.posicao.X <= METADEX-1 && obstaculo.posicao.X + COMPRIMENTOMERGULHADOR - 1<= METADEX-1;
+    verifica_x2 = obstaculo.posicao.X <= METADEX + COMPRIMENTOMENU -1 && obstaculo.posicao.X + COMPRIMENTOMERGULHADOR - 1<= METADEX + COMPRIMENTOMENU -1;
+    if (verifica_y && (verifica_x1 || verifica_x2)) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+void junta_tudo_menu (OBSTACULO *obstaculos) {
+    int i;
+    for (i = 0;i<NUMOBSTACULOSMENU;i++) {
+        if (obstaculos[i].tipo==SUBMARINOINIMIGO) {
+            if (!colisao_menu_submarino(obstaculos[i])) {
+                apaga_submarino_inimigo(obstaculos[i]);
+            }
+            atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
+            if (!colisao_menu_submarino(obstaculos[i])) {
+                testa_colisao_tela_inimigo(&obstaculos[i]);
+                //imprime_obstaculo_individual(obstaculos[i]);
+                //imprime_submarino_inimigo_cor(obstaculo[i],YELLOW);
+                imprime_obstaculo_individual_cor(obstaculos[i],YELLOW);
+            }
+            //testa_colisao_tela_inimigo(&obstaculos[i]);
+           // imprime_obstaculo_individual(obstaculos[i]);
+        } /* else if (obstaculos[i].tipo==MERGULHADOR){
+            apaga_mergulhador(obstaculos[i]);
+            atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
+            testa_colisao_tela_mergulhador(&obstaculos[i]);
+            imprime_obstaculo_individual(obstaculos[i]);
+        }*/
     }
 }
 
@@ -1386,22 +1498,34 @@ void recordes(){
 
 // menu do jogo
 void menu2(){// outro menu
+    OBSTACULO  obstaculos [NUMOBSTACULOSMENU] = {};
     char resp;
     int opcao;// novo jogo
     do {
         opcao = 0;
         clrscr();
         imprime_moldura_menu();
+        imprime_agua();// sei la achei q fico massa
         imprime_titulo();
         imprime_opcoes_menu();
         switch_menu_cor(opcao);
         imprime_seta_inicial();
             // print inicial
+        resp = '\0'// para resetar o valor de resp na iteracao
+        
         do {// fica atualizando posicao ate que de enter
-            le_tecla_menu(&resp,&opcao);
-            imprime_opcoes_menu();
-            switch_menu_cor(opcao);
+            Sleep(TEMPODELOOPMENU);// para dar um tempo entre loops
+            gera_obstaculos_menu(obstaculos);            
+            if (kbhit()) {
+                le_tecla_menu(&resp,&opcao);
+                imprime_opcoes_menu();
+                switch_menu_cor(opcao);
+            }
+            junta_tudo_menu (obstaculos);
         } while(resp!=ENTER);
+        cputsxy(METADEX, METADEY + 1, "Carregar Jogo");
+
+
         clrscr();// todas que chamar tem q limpar a tela
         switch(opcao){// ve qual a opcao que deu enter
             case NOVOJOGO:
@@ -1424,7 +1548,7 @@ void menu2(){// outro menu
                 break;
 
         }
-    } while (opcao!=4);
+    } while (opcao!=SAIR);
 }
 
 void creditos(){// creditos do jogo
