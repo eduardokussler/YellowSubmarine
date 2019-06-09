@@ -373,8 +373,9 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
         submarino->posicao.Y+=ALTURASUBMARINO;
         MessageBeep(MB_ICONWARNING);
     }
-    clrscr();
+    
     pintar_tela();
+    clrscr();
     cputsxy(METADEX,METADEY,"GAME OVER");
     getch();
 }
@@ -570,7 +571,7 @@ void imprime_interface_salvar(int *opcao) {
     } while(leitura!=ENTER);
 
 }
-    
+
 
 void imprime_menu_pausa(int *sair) {
     char leitura;
@@ -1222,6 +1223,8 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         testa_morte_oxigenio (submarino);
         atualiza_interface(submarino,&interface_jogo);
     } while(sair!=1 && submarino->vidas>0);
+
+
     if (submarino->vidas==0) {
         animacao_sem_vidas(submarino,obstaculos);
         guarda_pontuacao(*submarino);
