@@ -1087,20 +1087,15 @@ int testaIntegridade(FILE *arq){
     int tentativas = 0;
     char tmp[256];
     rewind(arq);
-    //arq = fopen("recordes.txt", "r");
-    //if(arq){
-        while(!feof(arq)){
-            fgets(tmp, sizeof(tmp), arq);
-            i++;
-        }
-        if(i <= NUMRECORDES + 1){
-            return 1;
-        }else{
-            return 0;
-        }
-    // }else{
-    //     return 0;
-    // }
+    while(!feof(arq)){
+        fgets(tmp, sizeof(tmp), arq);
+        i++;
+    }
+    if(i <= NUMRECORDES + 1){
+        return 1;
+    }else{
+        return 0;
+    }
 }
 
 void guarda_pontuacao(SUBMARINO sub){
