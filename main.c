@@ -1511,7 +1511,7 @@ void menu2(){// outro menu
         switch_menu_cor(opcao);
         imprime_seta_inicial();
             // print inicial
-        resp = '\0'// para resetar o valor de resp na iteracao
+        resp = '\0';// para resetar o valor de resp na iteracao
         
         do {// fica atualizando posicao ate que de enter
             Sleep(TEMPODELOOPMENU);// para dar um tempo entre loops
