@@ -1075,15 +1075,19 @@ void buscaNomesEPontuacao(FILE **arq, char nomes[NUMRECORDES+1][MAXSTRINGNOME], 
     }
     //fclose(*arq);
 }
-void gravarRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[]){
+void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
     int i;
     FILE *arq;
     arq = fopen("recordes.txt", "w");
-    for(i = 0; i < NUMRECORDES; i++){
-        fprintf(arq, "%s %d\n", nomes[i], pontuacao[i]);
+    if(arq){
+        for(i = 0; i < NUMRECORDES; i++){
+            fprintf(arq, "%s %d\n", nomes[i], pontuacao[i]);
+        }
+        fflush(arq);
+        fclose(arq);
+    }else{
+        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO");
     }
-    fflush(arq);
-    fclose(arq);
 
 }
 
@@ -1112,8 +1116,8 @@ void bubblesort(FILE **arq){
         fim--;
     }while(sinal == 1 && fim > 0);
 
-    rewind(*arq);
-    fclose(*arq);
+    //rewind(*arq);
+    //fclose(*arq);
     gravarRecordes(nomes, pontuacao);
 
 }
@@ -1157,7 +1161,7 @@ void guarda_pontuacao(SUBMARINO sub){
                 bubblesort(&arq);
                 fclose(arq);
             }else{
-                exit(1);
+                cputsxy(METADEX, METADEY, "ALGO DEU ERRADO");
             }
         }
     }else{
@@ -1552,12 +1556,14 @@ void buscaNomePontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[],
     //if(tentativas < 10){
     rewind(*arq);
        // while(!feof(*arq)){
-        for(i = 0; i < NUMRECORDES; i++){
-            fscanf(*arq,"%s", nomes[i]);
+        i = 0;
+        while(i < NUMRECORDES && !feof(*arq)){
+            fscanf(*arq, "%s", nomes[i]);
             fscanf(*arq, "%d", &pontuacao[i]);
+            i++;
         }
         //fclose(arq);
-        fclose(*arq);
+        fflush(*arq);
     //}else{
     //    cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
     //}
@@ -1570,7 +1576,7 @@ void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes
     }
     for(i = 0; i < NUMRECORDES; i++){
         gotoxy(METADEX+10, METADEY+i);
-        printf("%d", pontuacoes[i]);
+        cprintf("%d", pontuacoes[i]);
     }
 }
 
