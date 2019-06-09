@@ -110,6 +110,9 @@
 #define CORFORADAGUA DARKGRAY
 #define CORMENU CYAN
 
+#define CONTINUAR 0
+#define DESISTIR 1
+
 typedef struct  {
     char nome[MAXSTRINGNOME];// nome do jogador
     COORD posicao;// posicao do submarino
@@ -166,6 +169,8 @@ int colidiu_sub_inimigo (COORD sub, COORD obstaculo );
 void copia_vetor_obstaculos(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam);
 int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
+void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior);
+void imprime_seta_inicial();
 
 void pintar_tela() {
     int i,j;
@@ -523,8 +528,43 @@ void le_nome_jogador(char *nome) {
     } while(i==0 || leitura!=ENTER);
     nome[i] = '\0';
 }
+void imprime_opcoes_menu_pausa() {
+    cputsxy(METADEX, METADEY, "Continuar");
+    cputsxy(METADEX, METADEY + 1, "Sair");    
+}
 
-void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos, TORPEDO *torpedo) {
+void switch_menu_pausa_cor (int opcao_atual) {
+    textcolor(YELLOW);
+    if (opcao_atual==CONTINUAR) {
+        cputsxy(METADEX, METADEY, "Continuar");
+    } else if (opcao_atual==DESISTIR) {
+        cputsxy(METADEX, METADEY+1, "Sair");
+    }
+    textcolor(WHITE);
+}
+
+void imprime_menu_pausa(int *sair) {
+    char leitura;
+    int opcao = 0;
+    imprime_opcoes_menu_pausa();
+    switch_menu_pausa_cor (opcao);
+    imprime_seta_inicial();
+    do {
+        le_tecla_menu (&leitura, &opcao,CONTINUAR,DESISTIR);
+        imprime_opcoes_menu_pausa();
+        switch_menu_pausa_cor (opcao);
+    } while(leitura!=ENTER && leitura!=ESC);
+
+    cputsxy(METADEX-1, METADEY, "          ");
+    cputsxy(METADEX-1, METADEY + 1, "     ");
+    
+    if (opcao==DESISTIR && leitura!=ESC) {
+        *sair = 1;
+    }
+}
+
+
+void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos, TORPEDO *torpedo, int *sair) {
 
     if (kbhit()) {
          //fflush(stdin);
@@ -596,6 +636,8 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos, TORPE
             }
         } else if(*a == ESPACO){
             dispara_torpedo(submarino, torpedo);
+        } else if(*a == ESC) {
+            imprime_menu_pausa(sair); 
         }
     }
 }
@@ -1084,6 +1126,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     // obs: n foi proposital mas do jeito que esta fica impossivel caso esteja na borda esquerda virado para a esquerda
     //      e vira para a direita nao ha como virar novamente para a esquerda
     char a;
+    int sair;
     INTERFACEJOGO interface_jogo = {submarino->vidas, submarino->mergulhadores, submarino->oxigenio, submarino->pontuacao,submarino->tempo};
     pintar_jogo();
     imprime_moldura();
@@ -1096,7 +1139,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         atualiza_tempo (submarino);
         gera_obstaculos(obstaculos,NUMOBSTACULOS,PORCENTAGEMMERGULHADORES,BLOCOINICIALSPAWNJOGO,LIGHTMAGENTA,GREEN);// funcao que gera obstaculos nas posicoes que n tem obstaculos
         //apaga_obstaculos(obstaculos);// apaga os os obstaculos
-        switch_game_loop(&a,submarino,obstaculos, torpedo );
+        switch_game_loop(&a,submarino,obstaculos, torpedo,&sair );
         //
         //atualiza_interface(submarino,&interface_jogo);
         // depois que faz o comando do submarino apaga os obstaculos na tela e atualiza as posicoes dos obstaculos
@@ -1127,7 +1170,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         //atualiza_interface(submarino,&interface_jogo);
         testa_morte_oxigenio (submarino);
         atualiza_interface(submarino,&interface_jogo);
-    } while(a!=ESC && submarino->vidas>0);
+    } while(sair!=1 && submarino->vidas>0);
     if (submarino->vidas==0) {
         animacao_sem_vidas(submarino,obstaculos);
         guarda_pontuacao(*submarino);
@@ -1351,7 +1394,9 @@ void menu(){
             break;
         case '5':
             clrscr();
-            printf("Espero que volte logo...");
+            //printf("Espero que volte logo...");
+            cputsxy(METADEX,METADEY,"Espero que volte logo...");
+            getch();
             exit(0);
             break;
 
@@ -1375,19 +1420,19 @@ void imprime_titulo() {// imprime o titulo do jogo
 }
 
 // le a tecla digitada no menu e faz alteracoes correspondentes ao que foi pressionado
-void le_tecla_menu (char *tecla, int *opcao_atual){// funcao que deve ser usada com menu2
+void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior){// funcao que deve ser usada com menu2
     *tecla = getch();
     textcolor(YELLOW);
     if(*tecla==TECLASAUXILIARES) {
         *tecla = getch();
         if (*tecla==SETACIMA) {// se for cima e tiver como ir para cima vai para cima
-            if(*opcao_atual!=NOVOJOGO) {
+            if(*opcao_atual!=lim_superior) {
                 putchxy(METADEX-1,METADEY+*opcao_atual,'\0');
                 (*opcao_atual)--;
                 putchxy(METADEX-1,METADEY+*opcao_atual,'>');
             }
         } else if (*tecla==SETABAIXO) {// se for baixo e tiver como ir para baixo vai para baixo
-            if(*opcao_atual!=SAIR) {
+            if(*opcao_atual!=lim_inferior) {
                 putchxy(METADEX-1,METADEY+*opcao_atual,'\0');
                 (*opcao_atual)++;
                 putchxy(METADEX-1,METADEY+*opcao_atual,'>');
@@ -1529,13 +1574,13 @@ void menu2(){// outro menu
             Sleep(TEMPODELOOPMENU);// para dar um tempo entre loops
             gera_obstaculos(obstaculos,NUMOBSTACULOSMENU,0,BLOCOINICIALSPAWNMENU,YELLOW,GREEN);
             if (kbhit()) {
-                le_tecla_menu(&resp,&opcao);
+                le_tecla_menu(&resp,&opcao,NOVOJOGO,SAIR);
                 imprime_opcoes_menu();
                 switch_menu_cor(opcao);
             }
             percorre_vetor_obstaculos_menu (obstaculos);
         } while(resp!=ENTER);
-        cputsxy(METADEX, METADEY + 1, "Carregar Jogo");
+        //cputsxy(METADEX, METADEY + 1, "Carregar Jogo");
 
 
         clrscr();// todas que chamar tem q limpar a tela
@@ -1555,7 +1600,9 @@ void menu2(){// outro menu
                 creditos();
                 break;
             case SAIR:
-                cprintf("Espero que volte logo...");
+                //cprintf("Espero que volte logo...");
+                cputsxy(METADEX,METADEY,"Espero que volte logo...");
+                getch();
                 exit(0);
                 break;
 
