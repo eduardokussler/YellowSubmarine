@@ -177,6 +177,12 @@ void imprime_seta_inicial(int pos);
 void imprime_opcoes_menu_salvar();
 void preencherArquivo(FILE **arq);
 
+void limpa_input() {
+    while(kbhit()) {
+        getch();
+    }        
+}
+
 void pintar_tela() {
     int i,j;
     textbackground(CORMENU);
@@ -374,6 +380,7 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
         MessageBeep(MB_ICONWARNING);
     }
     
+    limpa_input();
     pintar_tela();
     clrscr();
     cputsxy(METADEX,METADEY,"GAME OVER");
