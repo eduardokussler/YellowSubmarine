@@ -1127,7 +1127,7 @@ int testaIntegridade(FILE *arq){
         fgets(tmp, sizeof(tmp), arq);
         i++;
     }
-    if(i <= NUMRECORDES + 1){
+    if(i == NUMRECORDES + 1){
         return 1;
     }else{
         return 0;
