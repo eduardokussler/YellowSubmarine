@@ -113,6 +113,9 @@
 #define CONTINUAR 0
 #define DESISTIR 1
 
+#define SALVAR 2
+#define NAOSALVAR 3
+
 typedef struct  {
     char nome[MAXSTRINGNOME];// nome do jogador
     COORD posicao;// posicao do submarino
@@ -170,7 +173,8 @@ void copia_vetor_obstaculos(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam);
 int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior);
-void imprime_seta_inicial();
+void imprime_seta_inicial(int pos);
+void imprime_opcoes_menu_salvar();
 void preencherArquivo(FILE **arq);
 
 void pintar_tela() {
@@ -544,12 +548,36 @@ void switch_menu_pausa_cor (int opcao_atual) {
     textcolor(WHITE);
 }
 
+void switch_menu_salvar_cor (int opcao_atual) {
+    textcolor(YELLOW);
+    if (opcao_atual==SALVAR) {
+        cputsxy(METADEX,METADEY+2,"Sim");
+    } else if (opcao_atual==NAOSALVAR) {
+        cputsxy(METADEX,METADEY+3,"Nao");
+    }
+    textcolor(WHITE);
+}
+
+void imprime_interface_salvar(int *opcao) {
+    char leitura;
+    imprime_opcoes_menu_salvar();
+    switch_menu_salvar_cor (*opcao);
+    imprime_seta_inicial(2);
+    do {
+        le_tecla_menu (&leitura, opcao,SALVAR,NAOSALVAR);
+        imprime_opcoes_menu_salvar();
+        switch_menu_salvar_cor (*opcao);
+    } while(leitura!=ENTER);
+
+}
+    
+
 void imprime_menu_pausa(int *sair) {
     char leitura;
     int opcao = 0;
     imprime_opcoes_menu_pausa();
     switch_menu_pausa_cor (opcao);
-    imprime_seta_inicial();
+    imprime_seta_inicial(0);
     do {
         le_tecla_menu (&leitura, &opcao,CONTINUAR,DESISTIR);
         imprime_opcoes_menu_pausa();
@@ -1242,30 +1270,29 @@ void imprime_moldura_menu() {
 
 }
 
+void imprime_opcoes_menu_salvar() {
+    cputsxy(METADEX,METADEY+2,"Sim");
+    cputsxy(METADEX,METADEY+3,"Nao");
+}
+
 // pergunta ao usuario se deseja salvar o jogo e caso queira tenta salvar o jogo
 // caso nao consiga salvar pergunta ao usuario se quer tentar novamente ou desistir
 // ate que o usuario desista ou o jogo seja salvo com sucesso
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
     int gravou = 0;
-    int opcao;
+    int opcao = SALVAR;
     char arquivo[MAXSTRINGARQ];
 
     clrscr();
     cputsxy(METADEX,METADEY+1,"Deseja salvar o jogo:");
-    cputsxy(METADEX,METADEY+2,"(s-sim n-nao)");
-    do{
-         opcao = getch();
-    } while(opcao!='s' && opcao!='n');
+    imprime_interface_salvar(&opcao);
 
-    while(opcao=='s' && gravou==0) {
+    while(opcao==SALVAR && gravou==0) {
         Sleep(SALVANDOJOGO);
         gravou = guarda_estrutura(submarino,obstaculos,torpedo);
         if (!gravou) {
             cputsxy(METADEX,METADEY+1,"Deseja tentar salvar novamente:");
-            cputsxy(METADEX,METADEY+2,"(s-sim n-nao)");
-            do{
-                opcao = getch();
-            } while(opcao!='s' && opcao!='n');
+            imprime_interface_salvar(&opcao);
             clrscr();
         } else {
             strcpy(arquivo,submarino.nome);
@@ -1498,9 +1525,9 @@ void imprime_opcoes_menu() {
 }
 
 // imprime a seta inicial que marca a opcao do menu
-void imprime_seta_inicial() {
+void imprime_seta_inicial(int pos) {
     textcolor(YELLOW);
-    putchxy(METADEX-1,METADEY,'>');
+    putchxy(METADEX-1,METADEY+pos,'>');
     textcolor(WHITE);
 }
 
@@ -1591,7 +1618,7 @@ void menu2(){// outro menu
         imprime_titulo();
         imprime_opcoes_menu();
         switch_menu_cor(opcao);
-        imprime_seta_inicial();
+        imprime_seta_inicial(0);
             // print inicial
         resp = '\0';// para resetar o valor de resp na iteracao
 
