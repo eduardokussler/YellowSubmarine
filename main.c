@@ -1586,6 +1586,17 @@ void preencherArquivo(FILE **arq){
     //fclose(*arq);
 }
 
+void mostraTituloRecordes(){
+    int i = 13;
+    int j = 13;
+    textcolor(YELLOW);
+    cputsxy(2+i,2, " _____  _____  _____  _____  _____  _____  _____  _____ ");
+    cputsxy(2+i,3, "/  _  \\/   __\\/     \\/  _  \\/  _  \\|  _  \\/   __\\/  ___>");
+    cputsxy(2+i,4, "|  _  <|   __||  |--||  |  ||  _  <|  |  ||   __||___  |");
+    cputsxy(2+i,5, "\\__|\\_/\\_____/\\_____/\\_____/\\__|\\_/|_____/\\_____/<_____/");
+    textcolor(WHITE);
+}
+
 void recordes(){
     int resp;
     char nomes[NUMRECORDES][MAXSTRINGNOME];
@@ -1595,6 +1606,7 @@ void recordes(){
     if(arq != NULL){
         buscaNomePontuacao(nomes, pontuacoes, &arq);
         fclose(arq);
+        mostraTituloRecordes();
         mostraTabelaRecordes(nomes, pontuacoes);
     }else{
         arq = fopen("recordes.txt", "w+");
@@ -1604,6 +1616,7 @@ void recordes(){
             preencherArquivo(&arq);
             buscaNomePontuacao(nomes, pontuacoes, &arq);
             fclose(arq);
+            mostraTituloRecordes();
             mostraTabelaRecordes(nomes, pontuacoes);
         }
     }
