@@ -171,6 +171,7 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior);
 void imprime_seta_inicial();
+void preencherArquivo(FILE **arq);
 
 void pintar_tela() {
     int i,j;
@@ -236,7 +237,7 @@ void imprime_submarino(COORD posicao,int orientacao,int cor) {// imprime sub  us
             textbackground(CORAGUA);
         } else {
             cputsxy(posicao.X+1,posicao.Y-1,"___|O|___");
-        }  
+        }
         cputsxy(posicao.X,posicao.Y,">\\________)");
 
     } else {// eh zero logo esquerda
@@ -530,7 +531,7 @@ void le_nome_jogador(char *nome) {
 }
 void imprime_opcoes_menu_pausa() {
     cputsxy(METADEX, METADEY, "Continuar");
-    cputsxy(METADEX, METADEY + 1, "Sair");    
+    cputsxy(METADEX, METADEY + 1, "Sair");
 }
 
 void switch_menu_pausa_cor (int opcao_atual) {
@@ -557,7 +558,7 @@ void imprime_menu_pausa(int *sair) {
 
     cputsxy(METADEX-1, METADEY, "          ");
     cputsxy(METADEX-1, METADEY + 1, "     ");
-    
+
     if (opcao==DESISTIR && leitura!=ESC) {
         *sair = 1;
     }
@@ -637,7 +638,7 @@ void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos, TORPE
         } else if(*a == ESPACO){
             dispara_torpedo(submarino, torpedo);
         } else if(*a == ESC) {
-            imprime_menu_pausa(sair); 
+            imprime_menu_pausa(sair);
         }
     }
 }
@@ -1027,43 +1028,45 @@ void imprime_submarino_controla_agua(SUBMARINO submarino) {//
     }
 }
 
-void buscaNomesEPontuacao(char nomes[NUMRECORDES+1][MAXSTRINGNOME], int pontuacao[]){
-    FILE *arq;
+void buscaNomesEPontuacao(FILE **arq, char nomes[NUMRECORDES+1][MAXSTRINGNOME], int pontuacao[]){
+    //FILE *arq;
     int i = 0;
-    int tentativas = 0;
-    while((arq = fopen("recordes.txt", "r")) == NULL && tentativas < 10){
-        arq = fopen("recordes.txt", "r");
-        tentativas++;
+    rewind(*arq);
+    while(!feof(*arq)){
+        fscanf(*arq,"%s", nomes[i]);
+        fscanf(*arq, "%d", &pontuacao[i]);
+        i++;
     }
-    if(tentativas < 10){
-        while(!feof(arq)){
-            fscanf(arq,"%s", nomes[i]);
-            fscanf(arq, "%d", &pontuacao[i]);
-            i++;
-        }
-        fclose(arq);
-    }else{
-        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
+    //fclose(*arq);
+}
+void gravarRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[]){
+    int i;
+    FILE *arq;
+    arq = fopen("recordes.txt", "w");
+    for(i = 0; i < NUMRECORDES; i++){
+        fprintf(arq, "%s %d\n", nomes[i], pontuacao[i]);
     }
+    fflush(arq);
+    fclose(arq);
+
 }
 
-void bubblesort(){
-    FILE *arq;
+void bubblesort(FILE **arq){
+    //FILE *arq;
     int pontuacao[NUMRECORDES + 1];//no arquivo de texto, o maximo de registro possivel é o NUMRECORDES + 1(que eh o novo recorde recem adicionado)
     char nomes[NUMRECORDES + 1][MAXSTRINGNOME];
     int i;
-    int tentativas = 0;
     int ind, fim, sinal, aux;
     char auxStr[MAXSTRINGNOME];
     fim = NUMRECORDES;
-    buscaNomesEPontuacao(nomes, pontuacao);
+    buscaNomesEPontuacao(arq, nomes, pontuacao);
     do{
         sinal = 0;
         for(ind = 0; ind < fim; ind++){
             if(pontuacao[ind] < pontuacao[ind + 1]){
                 aux = pontuacao[ind];
                 strcpy(auxStr, nomes[ind]);//trocando de posicao os nomes
-                pontuacao[ind] = pontuacao[ind+1];
+                pontuacao[ind] = pontuacao[ind + 1];
                 strcpy(nomes[ind], nomes[ind + 1]);
                 pontuacao[ind + 1] = aux;
                 strcpy(nomes[ind + 1], auxStr);
@@ -1071,37 +1074,61 @@ void bubblesort(){
             }
         }
         fim--;
-
     }while(sinal == 1 && fim > 0);
 
-    while((arq = fopen("recordes.txt", "w")) == NULL && tentativas < 10){
-        arq = fopen("recordes.txt", "w");
-        tentativas++;
-    }
-    if(tentativas < 10){
-        for(i = 0; i < NUMRECORDES; i++){
-            fprintf(arq, "%s %d\n", nomes[i], pontuacao[i]);
+    rewind(*arq);
+    fclose(*arq);
+    gravarRecordes(nomes, pontuacao);
+
+}
+int testaIntegridade(FILE *arq){
+    //FILE *arq;
+    int i = 0;
+    int tentativas = 0;
+    char tmp[256];
+    rewind(arq);
+    //arq = fopen("recordes.txt", "r");
+    //if(arq){
+        while(!feof(arq)){
+            fgets(tmp, sizeof(tmp), arq);
+            i++;
         }
-        fclose(arq);
-    }else{
-        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO DURANTE O SORTING");
-    }
-
-
-
+        if(i <= NUMRECORDES + 1){
+            return 1;
+        }else{
+            return 0;
+        }
+    // }else{
+    //     return 0;
+    // }
 }
 
 void guarda_pontuacao(SUBMARINO sub){
     FILE *arq;
     int tentativas = 0;
-    while((arq = fopen("recordes.txt", "a")) == NULL && tentativas < 10){
-        arq = fopen("recordes.txt", "a");
+    while((arq = fopen("recordes.txt", "a+")) == NULL && tentativas < 10){
+        arq = fopen("recordes.txt", "a+");
         tentativas++;
     }
     if(tentativas < 10){
-        fprintf(arq, "%s %d\n", sub.nome, sub.pontuacao);
-        fclose(arq);
-        bubblesort();
+        if(testaIntegridade(arq)){
+            fprintf(arq, "%s %d\n", sub.nome, sub.pontuacao);
+            fflush(arq);
+            bubblesort(&arq);
+            fclose(arq);
+         }else{
+            fclose(arq);
+            arq = fopen("recordes.txt", "w+");
+            if(arq){
+                preencherArquivo(&arq);
+                fprintf(arq, "%s %d\n", sub.nome, sub.pontuacao);
+                fflush(arq);
+                bubblesort(&arq);
+                fclose(arq);
+            }else{
+                exit(1);
+            }
+        }
     }else{
         cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
     }
@@ -1109,6 +1136,7 @@ void guarda_pontuacao(SUBMARINO sub){
 
 
 }
+
 
 
 // acho q pular para cima e baixo esta certo mas para os lados incorreto, mas achei meio estranho mover uma so posicao para direita ou esquerda
@@ -1491,13 +1519,13 @@ void buscaNomePontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[],
     }*/
     //if(tentativas < 10){
     rewind(*arq);
-        while(!feof(*arq)){
+       // while(!feof(*arq)){
+        for(i = 0; i < NUMRECORDES; i++){
             fscanf(*arq,"%s", nomes[i]);
             fscanf(*arq, "%d", &pontuacao[i]);
-            i++;
         }
         //fclose(arq);
-        fflush(*arq);
+        fclose(*arq);
     //}else{
     //    cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
     //}
@@ -1518,10 +1546,12 @@ void preencherArquivo(FILE **arq){
     char nome[] = "null";
     int pontuacao = 0;
     int i;
+    rewind(*arq);
     for(i = 0; i < NUMRECORDES; i++){
         fprintf(*arq, "%s %d\n", nome, pontuacao);
     }
     fflush(*arq);
+    //fclose(*arq);
 }
 
 void recordes(){
@@ -1540,7 +1570,7 @@ void recordes(){
             printf("ERRO AO CARREGAR O ARQUIVO");
         }else{
             preencherArquivo(&arq);
-            buscaNomePontuacao(nomes, pontuacoes,&arq);
+            buscaNomePontuacao(nomes, pontuacoes, &arq);
             fclose(arq);
             mostraTabelaRecordes(nomes, pontuacoes);
         }
