@@ -105,7 +105,10 @@
 #define MAXSTRINGARQ (MAXSTRINGNOME+4)//nome do jogador e .bin e \0
 #define NUMRECORDES 10 //Numero maximo de pontuacoes que sera mostrada na funcao recorde
 
-
+#define CORAGUA BLUE
+#define CORINTERFACE CYAN
+#define CORFORADAGUA DARKGRAY
+#define CORMENU CYAN
 
 typedef struct  {
     char nome[MAXSTRINGNOME];// nome do jogador
@@ -164,15 +167,81 @@ void copia_vetor_obstaculos(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam);
 int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 
+void pintar_tela() {
+    int i,j;
+    textbackground(CORMENU);
+    for (i = LINHA1;i <= LINHA2; i++) {
+        for (j = COLUNA1;j <= COLUNA2; j++) {
+            putchxy(j,i,'\0');
+        }
+    }
+}
+
+void pintar_agua() {
+    int i,j;
+    textbackground(CORAGUA);
+    for (i = LINHAINICIAL+1;i <= LINHAINTERFACEINFERIOR-1; i++) {
+        for (j = COLUNA1;j <= COLUNA2; j++) {
+            putchxy(j,i,'\0');
+        }
+    }
+}
+
+
+void pintar_fora_agua() {
+    int i,j;
+    textbackground(CORFORADAGUA);
+    for (i = LINHAINTERFACESUPERIOR+1;i <= LINHAINICIAL; i++) {
+        for (j = COLUNA1;j <= COLUNA2; j++) {
+            putchxy(j,i,'\0');
+        }
+    }
+}
+
+
+void pintar_interface() {
+    int i,j;
+    textbackground(CORINTERFACE);
+    for (i = LINHA1;i <= LINHAINTERFACESUPERIOR; i++) {
+        for (j = COLUNA1;j <= COLUNA2; j++) {
+            putchxy(j,i,'\0');
+        }
+    }
+
+    for (i = LINHAINTERFACEINFERIOR;i <= LINHA2; i++) {
+        for (j = COLUNA1;j <= COLUNA2; j++) {
+            putchxy(j,i,'\0');
+        }
+    }
+}
+
+void pintar_jogo() {
+    pintar_agua();
+    pintar_fora_agua();
+    pintar_interface();
+    textbackground(CORAGUA);
+}
 
 void imprime_submarino(COORD posicao,int orientacao,int cor) {// imprime sub  uso do if pois depende da orientacao
     textcolor(cor);
     if (orientacao) {// eh diferente de 0 logo direita
-        cputsxy(posicao.X+1,posicao.Y-1,"___|O|___");
+        if (posicao.Y-1<LINHAINICIAL) {
+            textbackground(CORFORADAGUA);
+            cputsxy(posicao.X+1,posicao.Y-1,"___|O|___");
+            textbackground(CORAGUA);
+        } else {
+            cputsxy(posicao.X+1,posicao.Y-1,"___|O|___");
+        }  
         cputsxy(posicao.X,posicao.Y,">\\________)");
 
     } else {// eh zero logo esquerda
-        cputsxy(posicao.X+1,posicao.Y-1,"___|O|___");
+        if (posicao.Y-1<LINHAINICIAL) {
+            textbackground(CORFORADAGUA);
+            cputsxy(posicao.X+1,posicao.Y-1,"___|O|___");
+            textbackground(CORAGUA);
+        } else {
+            cputsxy(posicao.X+1,posicao.Y-1,"___|O|___");
+        }
         cputsxy(posicao.X,posicao.Y,"(________/<");
     }
     textcolor(WHITE);
@@ -261,7 +330,13 @@ void atualiza_obstaculos(OBSTACULO *obstaculo) {// atualiza a posicao dos obstac
 
 void apaga_submarino(SUBMARINO submarino) {// posicoes que devem ser apagadas n dependem da orientacao logo sem if
     // funcao que apaga sub
-    cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
+    if (submarino.posicao.Y-1<LINHAINICIAL) {
+        textbackground(CORFORADAGUA);
+        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
+        textbackground(CORAGUA);
+    } else {
+        cputsxy(submarino.posicao.X+1,submarino.posicao.Y-1,"         ");
+    }
     cputsxy(submarino.posicao.X,submarino.posicao.Y,"           ");
 
 }
@@ -289,6 +364,7 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
         MessageBeep(MB_ICONWARNING);
     }
     clrscr();
+    pintar_tela();
     cputsxy(METADEX,METADEY,"GAME OVER");
     getch();
 }
@@ -692,7 +768,7 @@ void atualiza_interface(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
     if (submarino->posicao.Y==LINHAINICIAL) {
         atualiza_pontuacao(submarino);
         atualiza_interface_mergulhadores(submarino);
-    }*/
+    }*/textbackground(CORINTERFACE);
     if (submarino->pontuacao!=interface_jogo->pontuacao) {
         interface_jogo->pontuacao = submarino->pontuacao;
         atualiza_pontuacao(interface_jogo);
@@ -717,6 +793,7 @@ void atualiza_interface(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
         interface_jogo->tempo = submarino->tempo;
         atualiza_interface_tempo(interface_jogo);
     }
+    textbackground(CORAGUA);
 }
 /*
 void imprime_interface_auxiliar() {
@@ -729,13 +806,14 @@ void imprime_interface_auxiliar() {
 // imprime a interface inicial
 void imprime_interface(INTERFACEJOGO *interface_jogo) {
     //imprime_interface_auxiliar();
+    textbackground(CORINTERFACE);
     imprime_interface_pontuacao();
     atualiza_pontuacao(interface_jogo);//
     imprime_oxigenio(interface_jogo);// imprime completo
     imprime_vidas(interface_jogo);
     atualiza_interface_tempo(interface_jogo);
     //imprime_interface_mergulhadores();
-
+    textbackground(CORAGUA);
 }
 
 void atualiza_obstaculo_individual(COORD *posicao, int orientacao) {
@@ -1007,6 +1085,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     //      e vira para a direita nao ha como virar novamente para a esquerda
     char a;
     INTERFACEJOGO interface_jogo = {submarino->vidas, submarino->mergulhadores, submarino->oxigenio, submarino->pontuacao,submarino->tempo};
+    pintar_jogo();
     imprime_moldura();
     imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);// imprime o submarino inicialmente
     imprime_obstaculos(obstaculos);//para caso tenha carregado o jogo imprima os obstaculos do load
@@ -1053,16 +1132,18 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
         animacao_sem_vidas(submarino,obstaculos);
         guarda_pontuacao(*submarino);
     } else {
+        textbackground(CORMENU);
         //guarda_estrutura(*submarino);
         //tenta_guardar_estrutura(*submarino);
         tenta_guardar_estrutura(*submarino,obstaculos,*torpedo);
     }
+    //textbackground(CORMENU);
     clrscr();
 }
 
 void imprime_moldura() {// imprime a moldura do jogo
     int x,y;
-
+    textbackground(CORINTERFACE);
     for(x = COLUNA1+1;x<COLUNA2;x++) {
             putchxy(x,LINHA1,'-');
             putchxy(x,LINHA2,'-');
@@ -1074,7 +1155,7 @@ void imprime_moldura() {// imprime a moldura do jogo
             putchxy(COLUNA2,y,'|');
     }
     //printf("\n");
-
+    textbackground(CORAGUA);
 
 }
 
@@ -1431,11 +1512,12 @@ void menu2(){// outro menu
     OBSTACULO  obstaculos [NUMOBSTACULOSMENU] = {};
     char resp;
     int opcao;// novo jogo
+    pintar_tela();
     do {
         opcao = 0;
         clrscr();
         imprime_moldura_menu();
-        imprime_agua();// sei la achei q fico massa
+        //imprime_agua();// sei la achei q fico massa
         imprime_titulo();
         imprime_opcoes_menu();
         switch_menu_cor(opcao);
