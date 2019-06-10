@@ -22,9 +22,9 @@
 #define PORCENTAGEMMERGULHADORES 30// porcentagem de spawn de mergulhadores
 #define PORCENTAGEMSUBMARINOSINIMIGOS 50// porcentagem de spawn dos submarinos inimigos
 
-#define TEMPODELOOP 40//tempo em milissegundos entre as atualizações na tela durante o jogo
+#define TEMPODELOOP 40//tempo em milissegundos entre as atualiza��es na tela durante o jogo
 #define TEMPODELOOPMENU 60
-#define TEMPODEMORTE 80//tempo em milissegundos entre as atualizações na tela durante a animacao sem vidas
+#define TEMPODEMORTE 80//tempo em milissegundos entre as atualiza��es na tela durante a animacao sem vidas
 
 #define LINHAINTERFACESUPERIOR LINHA1+2// linha que separa a linha inicial da moldura e a parte superior da interface do jogador
 #define LINHAINTERFACEINFERIOR LINHA2-2// linha que separa a linha final da moldura e a parte inferior da interface do jogador
@@ -176,11 +176,12 @@ void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_infe
 void imprime_seta_inicial(int pos);
 void imprime_opcoes_menu_salvar();
 void preencherArquivo(FILE **arq);
+void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE **arq, int numero_recordes);
 
 void limpa_input() {
     while(kbhit()) {
         getch();
-    }        
+    }
 }
 
 void pintar_tela() {
@@ -379,7 +380,7 @@ void animacao_sem_vidas(SUBMARINO *submarino,OBSTACULO *obstaculos) {// faz uma 
         submarino->posicao.Y+=ALTURASUBMARINO;
         MessageBeep(MB_ICONWARNING);
     }
-    
+
     limpa_input();
     pintar_tela();
     clrscr();
@@ -742,7 +743,7 @@ void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
 // quando o submarino morre, recoloca ele na posicao inicial
 void respawn_submarino(SUBMARINO *submarino) {
     MessageBeep(MB_ICONWARNING);
-    if (submarino->vidas>0) {// caso nao tenha mais vidas, nao é necessario recolocar na pos inicial
+    if (submarino->vidas>0) {// caso nao tenha mais vidas, nao � necessario recolocar na pos inicial
         apaga_submarino(*submarino);
         submarino->posicao.X = COLUNAINICIAL;
         submarino->posicao.Y = LINHAINICIAL;
@@ -868,7 +869,7 @@ void atualiza_interface(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
         atualiza_interface_mergulhadores(submarino,interface_jogo);
         interface_jogo->mergulhadores = submarino->mergulhadores;
     }*/
-    if ((submarino->tempo-interface_jogo->tempo)%SEGUNDO<TEMPODELOOP) {// a diferença sempre sera !=0
+    if ((submarino->tempo-interface_jogo->tempo)%SEGUNDO<TEMPODELOOP) {// a diferen�a sempre sera !=0
         interface_jogo->tempo = submarino->tempo;
         atualiza_interface_tempo(interface_jogo);
     }
@@ -1064,24 +1065,13 @@ void imprime_submarino_controla_agua(SUBMARINO submarino) {//
     }
 }
 
-void buscaNomesEPontuacao(FILE **arq, char nomes[NUMRECORDES+1][MAXSTRINGNOME], int pontuacao[]){
-    //FILE *arq;
-    int i = 0;
-    rewind(*arq);
-    while(!feof(*arq)){
-        fscanf(*arq,"%s", nomes[i]);
-        fscanf(*arq, "%d", &pontuacao[i]);
-        i++;
-    }
-    //fclose(*arq);
-}
 void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
     int i;
     FILE *arq;
     arq = fopen("recordes.txt", "w");
     if(arq){
         for(i = 0; i < NUMRECORDES; i++){
-            fprintf(arq, "%s %d\n", nomes[i], pontuacao[i]);
+            fprintf(arq, "%s %d \n", nomes[i], pontuacao[i]);
         }
         fflush(arq);
         fclose(arq);
@@ -1093,13 +1083,15 @@ void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
 
 void bubblesort(FILE **arq){
     //FILE *arq;
-    int pontuacao[NUMRECORDES + 1];//no arquivo de texto, o maximo de registro possivel é o NUMRECORDES + 1(que eh o novo recorde recem adicionado)
+    int pontuacao[NUMRECORDES + 1];//no arquivo de texto, o maximo de registro possivel � o NUMRECORDES + 1(que eh o novo recorde recem adicionado)
     char nomes[NUMRECORDES + 1][MAXSTRINGNOME];
     int i;
     int ind, fim, sinal, aux;
     char auxStr[MAXSTRINGNOME];
     fim = NUMRECORDES;
-    buscaNomesEPontuacao(arq, nomes, pontuacao);
+    //buscaNomesEPontuacao(arq, nomes, pontuacao);
+    buscaNomePontuacao(nomes, pontuacao, arq,NUMRECORDES+1);
+
     do{
         sinal = 0;
         for(ind = 0; ind < fim; ind++){
@@ -1200,7 +1192,7 @@ void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){//
     do {
         Sleep(TEMPODELOOP);// para dar um tempo entre loops
         atualiza_tempo (submarino);
-        gera_obstaculos(obstaculos,NUMOBSTACULOS,PORCENTAGEMMERGULHADORES,BLOCOINICIALSPAWNJOGO,LIGHTMAGENTA,GREEN);// funcao que gera obstaculos nas posicoes que n tem obstaculos
+        gera_obstaculos(obstaculos,NUMOBSTACULOS,PORCENTAGEMMERGULHADORES,BLOCOINICIALSPAWNJOGO,LIGHTMAGENTA,LIGHTGREEN);// funcao que gera obstaculos nas posicoes que n tem obstaculos
         //apaga_obstaculos(obstaculos);// apaga os os obstaculos
         switch_game_loop(&a,submarino,obstaculos, torpedo,&sair );
         //
@@ -1395,7 +1387,7 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     }
     //} // Fim do while
     //fecha
-} // Fim da função
+} // Fim da fun��o
 
 // carrega o jogo
 void carregar_jogo() {
@@ -1545,28 +1537,16 @@ void imprime_seta_inicial(int pos) {
     textcolor(WHITE);
 }
 
-void buscaNomePontuacao(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacao[],FILE **arq){
+void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE **arq, int numero_recordes){
     int i = 0;
-    //int tentativas = 0;
-    /*
-    while((*arq = fopen("recordes.txt", "r")) == NULL && tentativas < 10){
-        arq = fopen("recordes.txt", "r");
-        tentativas++;
-    }*/
-    //if(tentativas < 10){
+    char intermed[90];
     rewind(*arq);
-       // while(!feof(*arq)){
-        i = 0;
-        while(i < NUMRECORDES && !feof(*arq)){
-            fscanf(*arq, "%s", nomes[i]);
-            fscanf(*arq, "%d", &pontuacao[i]);
+        while(i < numero_recordes && !feof(*arq)){
+            fgets(intermed,90,*arq);
+            strcpy(nomes[i],strtok(intermed," "));
+            pontuacao[i] = atoi(strtok(NULL," "));
             i++;
         }
-        //fclose(arq);
-        fflush(*arq);
-    //}else{
-    //    cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
-    //}
 }
 
 void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes[]){
@@ -1586,7 +1566,7 @@ void preencherArquivo(FILE **arq){
     int i;
     rewind(*arq);
     for(i = 0; i < NUMRECORDES; i++){
-        fprintf(*arq, "%s %d\n", nome, pontuacao);
+        fprintf(*arq, "%s %d \n", nome, pontuacao);
     }
     fflush(*arq);
     //fclose(*arq);
@@ -1610,7 +1590,7 @@ void recordes(){
     FILE *arq;
     arq = fopen("recordes.txt", "r"); //so teste para verificar se o arquivo existe
     if(arq != NULL){
-        buscaNomePontuacao(nomes, pontuacoes, &arq);
+        buscaNomePontuacao(nomes, pontuacoes, &arq,NUMRECORDES);
         fclose(arq);
         mostraTituloRecordes();
         mostraTabelaRecordes(nomes, pontuacoes);
@@ -1620,7 +1600,7 @@ void recordes(){
             printf("ERRO AO CARREGAR O ARQUIVO");
         }else{
             preencherArquivo(&arq);
-            buscaNomePontuacao(nomes, pontuacoes, &arq);
+            buscaNomePontuacao(nomes, pontuacoes, &arq,NUMRECORDES);
             fclose(arq);
             mostraTituloRecordes();
             mostraTabelaRecordes(nomes, pontuacoes);
