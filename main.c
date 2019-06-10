@@ -6,6 +6,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
+#include <limits.h>
 
 #define NUMOBSTACULOS 8// numero de obstaculos do jogo, um obstaculo pode ser um submarino inimigo ou um mergulhador
 #define NUMOBSTACULOSMENU (NUMOBSTACULOS-2)
@@ -1121,6 +1122,61 @@ int testaIntegridade(FILE *arq){
     rewind(arq);
     while(!feof(arq)){
         fgets(tmp, sizeof(tmp), arq);
+        i++;
+    }
+    if(i == NUMRECORDES + 1){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+int verifica_branco(char *str,int tam) {
+    int i = 0;
+    int achou = 0;
+    while(i < tam && achou == 0) {
+        if (str[i] == ' ') {
+            achou = i;
+        }    
+        i++;
+    }
+    return achou;
+}
+
+
+int tam_int_para_char() {
+    int num = INT_MAX;
+    int i = 1;
+    while(num>=10) {
+        num = num/10;
+        i++;
+    }
+    return i;
+
+}
+
+int testaIntegridade2(FILE *arq){
+    //FILE *arq;
+    int i = 0;
+    int posicao_branco;
+    int erro = 0;
+    int tentativas = 0;
+    int int_max = tam_int_para_char();
+    char tmp[MAXSTRINGNOME];
+    char tmp2[int_max+1];
+    rewind(arq);
+    while(!feof(arq)){
+        fgets(tmp, MAXSTRINGNOME, arq);
+        if (posicao_branco = verifica_branco(tmp,MAXSTRINGNOME-1)) {
+            fseek(arq,-(MAXSTRINGNOME-2-posicao_branco)*sizeof(char),SEEK_CUR);
+            fgets(tmp2,int_max+1,arq);
+        } else if (getc(arq)==' ') {
+            // texta se o prox eh numero
+            fgets(tmp2,int_max+1,arq);
+        } else {
+            erro = 1;
+        }
+
         i++;
     }
     if(i == NUMRECORDES + 1){
