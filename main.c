@@ -1213,7 +1213,16 @@ void guarda_pontuacao(SUBMARINO sub){
             }
         }
     }else{
-        cputsxy(METADEX, METADEY, "ALGO DEU ERRADO!");
+        arq = fopen("recordes.txt", "w+");
+            if(arq){
+                preencherArquivo(&arq);
+                fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
+                fflush(arq);
+                bubblesort(&arq);
+                fclose(arq);
+            }else{
+                cputsxy(METADEX, METADEY, "ALGO DEU ERRADO");
+            }
     }
 
 
