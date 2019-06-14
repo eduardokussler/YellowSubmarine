@@ -1423,7 +1423,8 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     char nome_arq[MAXSTRINGARQ];
     cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
     gotoxy(METADEX,METADEY+1);
-    gets(nome_arq);
+    //gets(nome_arq);
+    le_nome_jogador(nome_arq);// so para n deixar escrever mais do que precisa
     strcat(nome_arq,".bin");
     cputsxy(METADEX,METADEY,"                          ");
     cputsxy(METADEX,METADEY+1,"                          ");
