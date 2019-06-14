@@ -1072,7 +1072,7 @@ void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
     arq = fopen("recordes.txt", "w");
     if(arq){
         for(i = 0; i < NUMRECORDES; i++){
-            fprintf(arq, "%s %d \n", nomes[i], pontuacao[i]);
+            fprintf(arq, "%s;%d;\n", nomes[i], pontuacao[i]);
         }
         fflush(arq);
         fclose(arq);
@@ -1110,7 +1110,7 @@ void bubblesort(FILE **arq){
     }while(sinal == 1 && fim > 0);
 
     //rewind(*arq);
-    //fclose(*arq);
+    fclose(*arq);
     gravarRecordes(nomes, pontuacao);
 
 }
@@ -1137,7 +1137,7 @@ int verifica_branco(char *str,int tam) {
     while(i < tam && achou == 0) {
         if (str[i] == ' ') {
             achou = i;
-        }    
+        }
         i++;
     }
     return achou;
@@ -1189,13 +1189,13 @@ int testaIntegridade2(FILE *arq){
 void guarda_pontuacao(SUBMARINO sub){
     FILE *arq;
     int tentativas = 0;
-    while((arq = fopen("recordes.txt", "a+")) == NULL && tentativas < 10){
-        arq = fopen("recordes.txt", "a+");
+    while((arq = fopen("recordes.txt", "r+")) == NULL && tentativas < 10){
+        arq = fopen("recordes.txt", "r+");
         tentativas++;
     }
     if(tentativas < 10){
         if(testaIntegridade(arq)){
-            fprintf(arq, "%s %d\n", sub.nome, sub.pontuacao);
+            fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
             fflush(arq);
             bubblesort(&arq);
             fclose(arq);
@@ -1204,7 +1204,7 @@ void guarda_pontuacao(SUBMARINO sub){
             arq = fopen("recordes.txt", "w+");
             if(arq){
                 preencherArquivo(&arq);
-                fprintf(arq, "%s %d\n", sub.nome, sub.pontuacao);
+                fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
                 fflush(arq);
                 bubblesort(&arq);
                 fclose(arq);
@@ -1415,6 +1415,7 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
     gotoxy(METADEX,METADEY+1);
     gets(nome_arq);
+    strcat(nome_arq,".bin");
     cputsxy(METADEX,METADEY,"                          ");
     cputsxy(METADEX,METADEY+1,"                          ");
     arq = fopen(nome_arq,"rb");
@@ -1599,8 +1600,8 @@ void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE **arq,
     rewind(*arq);
         while(i < numero_recordes && !feof(*arq)){
             fgets(intermed,90,*arq);
-            strcpy(nomes[i],strtok(intermed," "));
-            pontuacao[i] = atoi(strtok(NULL," "));
+            strcpy(nomes[i],strtok(intermed,";"));
+            pontuacao[i] = atoi(strtok(NULL,";"));
             i++;
         }
 }
@@ -1622,7 +1623,7 @@ void preencherArquivo(FILE **arq){
     int i;
     rewind(*arq);
     for(i = 0; i < NUMRECORDES; i++){
-        fprintf(*arq, "%s %d \n", nome, pontuacao);
+        fprintf(*arq, "%s;%d;\n", nome, pontuacao);
     }
     fflush(*arq);
     //fclose(*arq);
