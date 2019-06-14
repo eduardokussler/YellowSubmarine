@@ -525,23 +525,26 @@ void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
 }
 
 // le nome do jogador limita o numero de chars na tela para MAXSTRINGNOME - 1
-void le_nome_jogador(char *nome) {
+int le_nome_jogador(char *nome) {
     //char intermed[MAXSTRINGNOME];
     int i = 0;
     char leitura;
     gotoxy(METADEX,METADEY+1);
     do {
         leitura = getch();
-        if (leitura != ENTER && leitura != BACKSPACE && i != MAXSTRINGNOME -1) {
+        if (leitura != ENTER && leitura != BACKSPACE && leitura != ESC && i != MAXSTRINGNOME -1) {
             nome[i] = leitura;
             putchxy(METADEX+i,METADEY+1,leitura);
             i++;
         } else if (leitura == BACKSPACE && i != 0) {
             i--;
             putchxy(METADEX+i,METADEY+1,'\0');
+        } else if(leitura == ESC) {
+            return 0;
         }
     } while(i==0 || leitura!=ENTER);
     nome[i] = '\0';
+    return 1;
 }
 void imprime_opcoes_menu_pausa() {
     cputsxy(METADEX, METADEY, "Continuar");
@@ -1424,33 +1427,35 @@ int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
     cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
     gotoxy(METADEX,METADEY+1);
     //gets(nome_arq);
-    le_nome_jogador(nome_arq);// so para n deixar escrever mais do que precisa
-    strcat(nome_arq,".bin");
-    cputsxy(METADEX,METADEY,"                          ");
-    cputsxy(METADEX,METADEY+1,"                          ");
-    arq = fopen(nome_arq,"rb");
-    if (arq) {
-        //if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
-        if (fread(&jogo,sizeof(JOGO),1,arq) == 1) {
-                /*printf("Nome: %s\n",buffer.Nome);
-                printf("Idade: %d\n",buffer.Idade);
-                printf("Altura: %.2f\n\n",buffer.Altura);*/
-            *submarino = jogo.submarino;
-            *torpedo = jogo.torpedo;
-            copia_vetor_obstaculos(obstaculos,jogo.obstaculos,NUMOBSTACULOS);
-            return 1;
+    //le_nome_jogador(nome_arq);;// so para n deixar escrever mais do que precisa
+    if (le_nome_jogador(nome_arq)) {
+        strcat(nome_arq,".bin");
+        cputsxy(METADEX,METADEY,"                          ");
+        cputsxy(METADEX,METADEY+1,"                          ");
+        arq = fopen(nome_arq,"rb");
+        if (arq) {
+            //if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
+            if (fread(&jogo,sizeof(JOGO),1,arq) == 1) {
+                    /*printf("Nome: %s\n",buffer.Nome);
+                    printf("Idade: %d\n",buffer.Idade);
+                    printf("Altura: %.2f\n\n",buffer.Altura);*/
+                *submarino = jogo.submarino;
+                *torpedo = jogo.torpedo;
+                copia_vetor_obstaculos(obstaculos,jogo.obstaculos,NUMOBSTACULOS);
+                return 1;
 
-        } else{
+            } else{
+                cputsxy(METADEX,METADEY,"ERRO");
+                getch();
+                return 0;
+                //fclose(arq); //fecha
+            }
+            fclose(arq);
+        } else {
             cputsxy(METADEX,METADEY,"ERRO");
             getch();
             return 0;
-            //fclose(arq); //fecha
         }
-        fclose(arq);
-    } else {
-        cputsxy(METADEX,METADEY,"ERRO");
-        getch();
-        return 0;
     }
     //} // Fim do while
     //fecha
@@ -1475,12 +1480,13 @@ void novo_jogo() {
     cputsxy(METADEX,METADEY,"Digite seu nome:");
     gotoxy(METADEX,METADEY+1);
     //scanf("%8s",sub.nome);
-    le_nome_jogador(sub.nome);
     //fflush(stdin);
     //fgets(sub.nome,MAXSTRING,stdin);// bota o \0 se digitar menos que 8 caracteres?
     //cputsxy(METADEX,METADEY+2,sub.nome);
-    clrscr();
-    game_loop(&sub,obstaculos, &torpedo);
+    if (le_nome_jogador(sub.nome)) {
+        clrscr();
+        game_loop(&sub,obstaculos, &torpedo);
+    }
 }
 
 
