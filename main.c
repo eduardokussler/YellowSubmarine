@@ -524,6 +524,14 @@ void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
     }
 }
 
+int letra_ponto_digito(char leitura) {
+    if ((leitura>=65 && leitura<=90)|| (leitura>=97 && leitura<=122) || (leitura>=48 && leitura<=57) || leitura=='.'){
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 // le nome do jogador limita o numero de chars na tela para MAXSTRINGNOME - 1
 int le_nome_jogador(char *nome) {
     //char intermed[MAXSTRINGNOME];
@@ -532,7 +540,8 @@ int le_nome_jogador(char *nome) {
     gotoxy(METADEX,METADEY+1);
     do {
         leitura = getch();
-        if (leitura != ENTER && leitura != BACKSPACE && leitura != ESC && i != MAXSTRINGNOME -1) {
+        //if (leitura != ENTER && leitura != BACKSPACE && leitura != ESC && i != MAXSTRINGNOME -1) {
+        if (letra_ponto_digito(leitura) && i != MAXSTRINGNOME -1) {
             nome[i] = leitura;
             putchxy(METADEX+i,METADEY+1,leitura);
             i++;
@@ -546,6 +555,8 @@ int le_nome_jogador(char *nome) {
     nome[i] = '\0';
     return 1;
 }
+
+
 void imprime_opcoes_menu_pausa() {
     cputsxy(METADEX, METADEY, "Continuar");
     cputsxy(METADEX, METADEY + 1, "Sair");
@@ -1147,8 +1158,7 @@ int verifica_branco(char *str,int tam) {
 }
 
 
-int tam_int_para_char() {
-    int num = INT_MAX;
+int tam_int_para_char(int num) {
     int i = 1;
     while(num>=10) {
         num = num/10;
@@ -1158,7 +1168,101 @@ int tam_int_para_char() {
 
 }
 
+// obs: troquei para so poder botar no nome digitos letras e .
+// a funcao funciona mas so verifica se o numero eh um int valido so verifica se tem o num
+// de digitos validos e tambem n verifica se o nome so tem caracteres que sao . digitos ou letras
+// obs a funcao recordes vai dar problema quando altera o arquivo pq mesmo q tenha a estrutura certa
+// vai precisar reordenar ele pois pode estar com a ordem errada 
+// essas alteracoes a gente pode fazer na aula
 int testaIntegridade2(FILE *arq){
+    //FILE *arq;
+    int i = 0;
+    int posicao_branco;
+    int erro = 0;
+    int tentativas = 0;
+    int separador_encontrado = 0;
+    char letra;
+    int int_max = tam_int_para_char(INT_MAX);
+    int num_letras = 0;
+    int tam_nome;
+    char tmp[MAXSTRINGNOME];
+    char tmp2[int_max+1];
+
+    rewind(arq);
+    while(!feof(arq) && !erro && i != NUMRECORDES){
+        // ideia: ler ate o ;(proibir jogador de colocar ;)
+        // se leu no max 8 entao parte para testar numero
+        // numero pode ter ate int_max 
+
+        tam_nome = 0;// 
+        separador_encontrado = 0;
+        while(!separador_encontrado && !erro && tam_nome<MAXSTRINGNOME) {//msn e n msn-1 pq vai pegar o ;
+        //while(!separador_encontrado && !erro) {
+            letra = getc(arq);
+            tam_nome++;
+            if (letra == '\n' || letra == EOF) {
+                erro = 1;
+            } else if (letra == ';') {// eof para o ultimo caso
+                separador_encontrado = 1;
+            } else if(tam_nome==MAXSTRINGNOME) {
+                erro = 1;
+            } 
+        }
+        // se n achou separador, ou achou eof,\n ou estourou o tamanho mas em todos esses casos erro = 1 logo nem entrara no while
+        // achou separador logo tem q verificar ate \n( no caso do separador encontrado se o ; se for o EOF nao entra no while)
+
+        //ou encontrara o \n ou o eof ou ; unico caso certo eh o ; com o tamanho adequado
+        // tem q ler tudo ate o ; e quando achar se tiver o tam certo e o proximo for \n esta certo
+        num_letras = 0;
+        separador_encontrado = 0;
+        //while(!erro && letra!='\n' && letra!=EOF && num_letras<=int_max){
+        while(!erro && !separador_encontrado && num_letras<=int_max){// pode stourar num letras
+            letra = getc(arq);
+            if (letra<=57 && letra>=48) {// numeros na tabela ascii
+                num_letras++;
+            } else if(letra=='\n' || letra==EOF) {
+                erro = 1;
+            } else if (letra==';') {
+                separador_encontrado = 1;
+            } else {
+                erro = 1;
+            }
+        }
+
+        // tem que ter encontrado o separador 
+        if (!separador_encontrado) {
+            erro = 1;
+        } else {
+            letra = getc(arq);
+            if (letra!='\n') {
+                erro = 1;
+            }
+        } 
+        /* 
+        if (num_letras>int_max) {//&& getc(arq)=='\n'
+            erro = 1;
+        }*/
+
+        
+
+
+        i++;
+    }
+
+    letra = getc(arq);
+    if (letra!=EOF) {
+        erro = 1;
+    }
+
+    if(erro == 0){
+    //if(i == NUMRECORDES + 1 && erro == 0){
+        return 1;
+    }else{
+        return 0;
+    }
+}
+
+int testaIntegridade3(FILE *arq){
     //FILE *arq;
     int i = 0;
     int posicao_branco;
