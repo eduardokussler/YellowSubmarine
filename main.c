@@ -524,8 +524,8 @@ void dispara_torpedo(SUBMARINO *submarino, TORPEDO *torpedo){
     }
 }
 
-int letra_ponto_digito(char leitura) {
-    if ((leitura>=65 && leitura<=90)|| (leitura>=97 && leitura<=122) || (leitura>=48 && leitura<=57) || leitura=='.'){
+int letra_ponto_digito_espaco(char leitura) {
+    if ((leitura>=65 && leitura<=90)|| (leitura>=97 && leitura<=122) || (leitura>=48 && leitura<=57) || leitura=='.' || leitura==ESPACO){
         return 1;
     } else {
         return 0;
@@ -541,7 +541,7 @@ int le_nome_jogador(char *nome) {
     do {
         leitura = getch();
         //if (leitura != ENTER && leitura != BACKSPACE && leitura != ESC && i != MAXSTRINGNOME -1) {
-        if (letra_ponto_digito(leitura) && i != MAXSTRINGNOME -1) {
+        if (letra_ponto_digito_espaco(leitura) && i != MAXSTRINGNOME -1) {
             nome[i] = leitura;
             putchxy(METADEX+i,METADEY+1,leitura);
             i++;
