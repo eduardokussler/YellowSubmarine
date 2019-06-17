@@ -1167,12 +1167,23 @@ int tam_int_para_char(int num) {
     return i;
 
 }
+/*
+long int converte_str_long(char *str)  {
+    long int retorno = 0;
+    int  = strlen(str)-1;
+    while(*str[i]) {}
+}*/
+
+int teste_inteiro_valido(char *str) {
+    long int valor_str = atol(str);
+    return valor_str<=INT_MAX;
+}
 
 // obs: troquei para so poder botar no nome digitos letras e .
 // a funcao funciona mas so verifica se o numero eh um int valido so verifica se tem o num
 // de digitos validos e tambem n verifica se o nome so tem caracteres que sao . digitos ou letras
 // obs a funcao recordes vai dar problema quando altera o arquivo pq mesmo q tenha a estrutura certa
-// vai precisar reordenar ele pois pode estar com a ordem errada 
+// vai precisar reordenar ele pois pode estar com a ordem errada
 // essas alteracoes a gente pode fazer na aula
 int testaIntegridade2(FILE *arq){
     //FILE *arq;
@@ -1185,20 +1196,24 @@ int testaIntegridade2(FILE *arq){
     int int_max = tam_int_para_char(INT_MAX);
     int num_letras = 0;
     int tam_nome;
-    char tmp[MAXSTRINGNOME];
-    char tmp2[int_max+1];
+    char tmp2[MAXSTRINGNOME];
+    char tmp[int_max+1];
+
+    tmp[int_max] = '\0';
 
     rewind(arq);
     while(!feof(arq) && !erro && i != NUMRECORDES){
         // ideia: ler ate o ;(proibir jogador de colocar ;)
         // se leu no max 8 entao parte para testar numero
-        // numero pode ter ate int_max 
+        // numero pode ter ate int_max
 
-        tam_nome = 0;// 
+        tam_nome = 0;//
         separador_encontrado = 0;
         while(!separador_encontrado && !erro && tam_nome<MAXSTRINGNOME) {//msn e n msn-1 pq vai pegar o ;
         //while(!separador_encontrado && !erro) {
+
             letra = getc(arq);
+
             tam_nome++;
             if (letra == '\n' || letra == EOF) {
                 erro = 1;
@@ -1206,7 +1221,9 @@ int testaIntegridade2(FILE *arq){
                 separador_encontrado = 1;
             } else if(tam_nome==MAXSTRINGNOME) {
                 erro = 1;
-            } 
+            } else if (!letra_ponto_digito_espaco(letra)) {
+                erro = 1;
+            }
         }
         // se n achou separador, ou achou eof,\n ou estourou o tamanho mas em todos esses casos erro = 1 logo nem entrara no while
         // achou separador logo tem q verificar ate \n( no caso do separador encontrado se o ; se for o EOF nao entra no while)
@@ -1219,6 +1236,7 @@ int testaIntegridade2(FILE *arq){
         while(!erro && !separador_encontrado && num_letras<=int_max){// pode stourar num letras
             letra = getc(arq);
             if (letra<=57 && letra>=48) {// numeros na tabela ascii
+                tmp[num_letras] = letra;
                 num_letras++;
             } else if(letra=='\n' || letra==EOF) {
                 erro = 1;
@@ -1228,8 +1246,13 @@ int testaIntegridade2(FILE *arq){
                 erro = 1;
             }
         }
+        if (num_letras>=int_max && !erro) {
+            if (!teste_inteiro_valido(tmp)) {
+                erro = 1;
+            }
+        }
 
-        // tem que ter encontrado o separador 
+        // tem que ter encontrado o separador
         if (!separador_encontrado) {
             erro = 1;
         } else {
@@ -1237,13 +1260,13 @@ int testaIntegridade2(FILE *arq){
             if (letra!='\n') {
                 erro = 1;
             }
-        } 
-        /* 
+        }
+        /*
         if (num_letras>int_max) {//&& getc(arq)=='\n'
             erro = 1;
         }*/
 
-        
+
 
 
         i++;
@@ -1261,7 +1284,7 @@ int testaIntegridade2(FILE *arq){
         return 0;
     }
 }
-
+/*
 int testaIntegridade3(FILE *arq){
     //FILE *arq;
     int i = 0;
@@ -1291,7 +1314,7 @@ int testaIntegridade3(FILE *arq){
     }else{
         return 0;
     }
-}
+}*/
 
 void guarda_pontuacao(SUBMARINO sub){
     FILE *arq;
@@ -1301,7 +1324,7 @@ void guarda_pontuacao(SUBMARINO sub){
         tentativas++;
     }
     if(tentativas < 10){
-        if(testaIntegridade(arq)){
+        if(testaIntegridade2(arq)){
             fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
             fflush(arq);
             bubblesort(&arq);
