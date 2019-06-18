@@ -1175,8 +1175,8 @@ long int converte_str_long(char *str)  {
 }*/
 
 int teste_inteiro_valido(char *str) {
-    long int valor_str = atol(str);
-    return valor_str<=INT_MAX;
+    long long valor_str = strtoll(str,NULL,0);
+    return valor_str<=(long long)INT_MAX;
 }
 
 // obs: troquei para so poder botar no nome digitos letras e .
