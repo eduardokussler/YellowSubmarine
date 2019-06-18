@@ -1213,7 +1213,6 @@ int testaIntegridade2(FILE *arq){
         //while(!separador_encontrado && !erro) {
 
             letra = getc(arq);
-
             tam_nome++;
             if (letra == '\n' || letra == EOF) {
                 erro = 1;
@@ -1788,12 +1787,17 @@ void recordes(){
     char nomes[NUMRECORDES][MAXSTRINGNOME];
     int pontuacoes[NUMRECORDES];
     FILE *arq;
-    arq = fopen("recordes.txt", "r"); //so teste para verificar se o arquivo existe
-    if(arq != NULL){
-        buscaNomePontuacao(nomes, pontuacoes, &arq,NUMRECORDES);
-        fclose(arq);
-        mostraTituloRecordes();
-        mostraTabelaRecordes(nomes, pontuacoes);
+    arq = fopen("recordes.txt", "r+"); //so teste para verificar se o arquivo existe
+    if(arq != NULL && testaIntegridade2(arq)){
+        bubblesort(&arq);
+        if (arq = fopen("recordes.txt", "r")) {
+            buscaNomePontuacao(nomes, pontuacoes, &arq,NUMRECORDES);
+            fclose(arq);
+            mostraTituloRecordes();
+            mostraTabelaRecordes(nomes, pontuacoes);
+        } else {
+            printf("ERRO AO CARREGAR O ARQUIVO");
+        }
     }else{
         arq = fopen("recordes.txt", "w+");
         if(arq == NULL){
