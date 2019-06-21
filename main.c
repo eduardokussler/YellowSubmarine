@@ -189,7 +189,6 @@ int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo)
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior);
 void imprime_seta_inicial(int pos);
-void imprime_opcoes_menu_salvar();
 void preencherArquivo(FILE **arq);
 void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE **arq, int numero_recordes);
 
