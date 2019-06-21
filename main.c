@@ -1498,8 +1498,16 @@ void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE **arq,
         }
 }
 
+void mostraTabelaRecordesAuxiliar() {
+    textcolor(CORRECORDES);
+    cputsxy(METADEX, METADEY-1, "JOGADORES");
+    cputsxy(METADEX+10, METADEY-1, "PONTOS");
+    textcolor(CORTEXTO);
+}
+
 void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes[]){
     int i;
+    mostraTabelaRecordesAuxiliar();
     for(i = 0; i < NUMRECORDES; i++){
         cputsxy(METADEX, METADEY+i, nomes[i]);
     }
@@ -1661,7 +1669,6 @@ int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo) {// testa 
             return 0;
         }
 }
-
 
 int main() {
     menu();// inicia o menu do jogo
