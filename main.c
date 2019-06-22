@@ -138,6 +138,9 @@
 #define COLUNATITULO2 15// coluna inicial de submarine
 #define LINHAINICIALTITULO 2// linha inicial do titulo do jogo
 
+#define CORSELECIONADA YELLOW// cor da opcao selecionada em um menu
+#define CORVIDAS LIGHTRED
+
 //estrutura do submarino do jogador
 typedef struct  {
     char nome[MAXSTRINGNOME];// nome do jogador
@@ -188,7 +191,6 @@ typedef struct{// estrutura utilizada para salvar e carregar jogo
 int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo);
 void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior);
-void imprime_seta_inicial(int pos);
 void preencherArquivo(FILE **arq);
 void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE **arq, int numero_recordes);
 
@@ -240,6 +242,7 @@ void pintar_agua();
 void pintar_tela();
 void limpa_tela_moldura();
 void limpa_input();
+void imprime_seta(int pos);
 
 void limpa_input() {// limpa as teclas que restaram no stdin
     while(kbhit()) {
@@ -414,9 +417,31 @@ void animacao_sem_vidas(SUBMARINO submarino,OBSTACULO *obstaculos) {// faz uma a
     getch();
 }
 
+void gera_mergulhador(OBSTACULO *obstaculo,int orientacao,int i,int cor_mergulhador, int bloco_inicial) {//inicializa um mergulhador que foi gerado
+    obstaculo->tipo = MERGULHADOR;
+    obstaculo->orientacao = orientacao;
+    obstaculo->posicao.Y = INICIOAGUA+(i+bloco_inicial)*ALTURASUBMARINO;
+    obstaculo->cor = cor_mergulhador;
+    if (orientacao) {
+       obstaculo->posicao.X = SPAWNESQUERDAOBSTACULO;
+    } else {
+        obstaculo->posicao.X = SPAWNDIREITAMERGULHADOR;
+    }
+}
 
-// funcao que gera obstaculos
-//rand()%100+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem
+void gera_inimigo(OBSTACULO *obstaculo,int orientacao,int i,int cor_sub, int bloco_inicial) {//inicializa um submarino inimigo que foi gerado
+    obstaculo->tipo = SUBMARINOINIMIGO;
+    obstaculo->orientacao = orientacao;
+    obstaculo->posicao.Y = INICIOAGUA+(i+bloco_inicial)*ALTURASUBMARINO;
+    obstaculo->cor = cor_sub;
+    if (orientacao) {
+       obstaculo->posicao.X = SPAWNESQUERDAOBSTACULO;
+    } else {
+        obstaculo->posicao.X = SPAWNDIREITASUBMARINO;
+    }
+}
+
+// funcao que gera obstaculos para um vetor de obstaculos
 void gera_obstaculos(OBSTACULO *obstaculo, int num_obstaculos,int porcentagem_mergulhadores, int bloco_inicial,int cor_sub,int cor_mergulhador) {
     int i;
     int probabilidade_tipo;
@@ -424,38 +449,20 @@ void gera_obstaculos(OBSTACULO *obstaculo, int num_obstaculos,int porcentagem_me
     int orientacao;
     srand(time(0));
     for(i = 0; i<num_obstaculos;i++) {
-        probabilidade_tipo = rand()%100+1;
+        probabilidade_tipo = rand()%100+1;//rand()%100+1 retorna um numero entre 1 e 100 logo pode ser usado para porcentagem
          if (obstaculo[i].tipo==SEMOBSTACULO) {
-            probabilidade_gerar = rand()%2;
+            probabilidade_gerar = rand()%2;// 50 por cento de chance de gerar um obstaculo
             if (probabilidade_gerar) {
+                orientacao = rand()%2;// orientacao do obstaculo
                 if (probabilidade_tipo<=porcentagem_mergulhadores) {
-                    orientacao = rand()%2;
-                    obstaculo[i].tipo = MERGULHADOR;
-                    obstaculo[i].orientacao = orientacao;
-                    obstaculo[i].posicao.Y = INICIOAGUA+(i+bloco_inicial)*ALTURASUBMARINO;
-                    obstaculo[i].cor = cor_mergulhador;
-                    if (orientacao) {
-                       obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO;
-                    } else {
-                        obstaculo[i].posicao.X = SPAWNDIREITAMERGULHADOR;
-                    }
-                } else if (probabilidade_tipo>porcentagem_mergulhadores) {
-                    orientacao = rand()%2;
-                    obstaculo[i].tipo = SUBMARINOINIMIGO;
-                    obstaculo[i].orientacao = orientacao;
-                    obstaculo[i].posicao.Y = INICIOAGUA+(i+bloco_inicial)*ALTURASUBMARINO;
-                    obstaculo[i].cor = cor_sub;
-                    if (orientacao) {
-                       obstaculo[i].posicao.X = SPAWNESQUERDAOBSTACULO;
-                    } else {
-                        obstaculo[i].posicao.X = SPAWNDIREITASUBMARINO;
-                    }
+                    gera_mergulhador(&obstaculo[i],orientacao,i,cor_mergulhador,bloco_inicial);
+                } else  {
+                    gera_inimigo(&obstaculo[i],orientacao,i,cor_sub,bloco_inicial);
                 }
             }
         }
     }
 }
-
 
 void atualiza_torpedo(TORPEDO *torpedo){// atualiza a posicao do torpedo e testa se atingiu as paredes
     if(torpedo->status == DIREITA){
@@ -519,24 +526,22 @@ int letra_ponto_digito_espaco(char leitura) {// verifica se o char leitura eh um
 
 // le nome do jogador limita o numero de chars na tela para MAXSTRINGNOME - 1
 int le_nome_jogador(char *nome) {
-    //char intermed[MAXSTRINGNOME];
     int i = 0;
     char leitura;
     gotoxy(METADEX,METADEY+1);
     do {
         leitura = getch();
-        //if (leitura != ENTER && leitura != BACKSPACE && leitura != ESC && i != MAXSTRINGNOME -1) {
-        if (letra_ponto_digito_espaco(leitura) && i != MAXSTRINGNOME -1) {
-            nome[i] = leitura;
-            putchxy(METADEX+i,METADEY+1,leitura);
+        if (letra_ponto_digito_espaco(leitura) && i != MAXSTRINGNOME -1) {// se foi digitado um caractere valido e pode escrever mais caracteres
+            nome[i] = leitura;// coloca na string
+            putchxy(METADEX+i,METADEY+1,leitura);// printa o caractere
             i++;
-        } else if (leitura == BACKSPACE && i != 0) {
+        } else if (leitura == BACKSPACE && i != 0) {// se foi digitado backspace e ha pelo menos um caractere deleta o ultimo caractere
             i--;
             putchxy(METADEX+i,METADEY+1,'\0');
-        } else if(leitura == ESC) {
+        } else if(leitura == ESC) {// se apertou esc 
             return 0;
         }
-    } while(i==0 || leitura!=ENTER);
+    } while(i==0 || leitura!=ENTER);// enquanto nao digitou enter ou a string esta vazia
     nome[i] = '\0';
     return 1;
 }
@@ -547,31 +552,31 @@ void imprime_opcoes_menu_pausa() {// imprime opcoes do menu de pausa
     cputsxy(METADEX, METADEY + 1, "Sair");
 }
 
-void switch_menu_pausa_cor (int opcao_atual) {
-    textcolor(YELLOW);
+void switch_menu_pausa_cor (int opcao_atual) {// imprime na cor certa a opcao atual do menu de pausa
+    textcolor(CORSELECIONADA);
     if (opcao_atual==CONTINUAR) {
         cputsxy(METADEX, METADEY, "Continuar");
     } else if (opcao_atual==DESISTIR) {
         cputsxy(METADEX, METADEY+1, "Sair");
     }
-    textcolor(WHITE);
+    textcolor(CORTEXTO);
 }
 
-void switch_menu_salvar_cor (int opcao_atual) {
-    textcolor(YELLOW);
+void switch_menu_salvar_cor (int opcao_atual) {// imprimi na cor certa a opcao atual do menu de salvar o jogo
+    textcolor(CORSELECIONADA);
     if (opcao_atual==SALVAR) {
         cputsxy(METADEX,METADEY+2,"Sim");
     } else if (opcao_atual==NAOSALVAR) {
         cputsxy(METADEX,METADEY+3,"Nao");
     }
-    textcolor(WHITE);
+    textcolor(CORTEXTO);
 }
 
-void imprime_interface_salvar(int *opcao) {
+void imprime_interface_salvar(int *opcao) {// interface de salvar o jogo
     char leitura;
     imprime_opcoes_menu_salvar();
     switch_menu_salvar_cor (*opcao);
-    imprime_seta_inicial(2);
+    imprime_seta(SALVAR);
     do {
         le_tecla_menu (&leitura, opcao,SALVAR,NAOSALVAR);
         imprime_opcoes_menu_salvar();
@@ -581,18 +586,18 @@ void imprime_interface_salvar(int *opcao) {
 }
 
 
-void imprime_menu_pausa(int *sair) {
+void imprime_menu_pausa(int *sair) {// interface de imprimir o menu de pausa
     char leitura;
     int opcao = 0;
     imprime_opcoes_menu_pausa();
     switch_menu_pausa_cor (opcao);
-    imprime_seta_inicial(0);
+    imprime_seta(CONTINUAR);
     do {
         le_tecla_menu (&leitura, &opcao,CONTINUAR,DESISTIR);
         imprime_opcoes_menu_pausa();
         switch_menu_pausa_cor (opcao);
     } while(leitura!=ENTER && leitura!=ESC);
-
+    // apaga as opcoes do menu
     cputsxy(METADEX-1, METADEY, "          ");
     cputsxy(METADEX-1, METADEY + 1, "     ");
 
@@ -601,66 +606,82 @@ void imprime_menu_pausa(int *sair) {
     }
 }
 
+void atualiza_sub_cima(SUBMARINO *submarino) {
+    if (submarino->posicao.Y-2*ALTURASUBMARINO+1>LINHAINTERFACESUPERIOR) {// se puder ir para cima
+        apaga_submarino(*submarino);
+        submarino->posicao.Y -=ALTURASUBMARINO;
+        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
+        if (submarino->posicao.Y==LINHAINICIAL) {// se esta em cima da linha inicial eh necessario imprimir a agua novamente
+            imprime_agua();
+        }
+    }
+}
 
-void switch_game_loop(char *a, SUBMARINO *submarino,OBSTACULO *obstaculos, TORPEDO *torpedo, int *sair) {
+void atualiza_sub_baixo(SUBMARINO *submarino) {
+    if (submarino->posicao.Y+ALTURASUBMARINO<LINHAINTERFACEINFERIOR) {// verifica se pode ir para baixo
+        apaga_submarino(*submarino);
+        if (submarino->posicao.Y==LINHAINICIAL) {// se saiu da linha da agua eh necessario imprimir ela denovo
+            imprime_agua();
+        }
+        submarino->posicao.Y +=ALTURASUBMARINO;
+        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
+    }
+}
+
+void atualiza_sub_direita(SUBMARINO *submarino) {
+    if (submarino->posicao.X+COMPRIMENTOSUBMARINO+CAMINHOPORLOOP-1<COLUNA2) {// verifica se pode ir para a direita
+        apaga_submarino(*submarino);
+        if (submarino->orientacao==DIREITA) {
+            submarino->posicao.X +=CAMINHOPORLOOP;
+        }else {// se nao esta virado para a direita apenas vira ele
+            submarino->orientacao = DIREITA;
+        }
+        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
+        if (submarino->posicao.Y==LINHAINICIAL) {//necessario imprimir agua se estivar na linha da agua
+            imprime_agua();
+        }
+    }
+}
+
+void atualiza_sub_esquerda(SUBMARINO *submarino) {
+    if (submarino->posicao.X-CAMINHOPORLOOP>COLUNA1) {// se pode ir para a esquerda
+        apaga_submarino(*submarino);
+        if (submarino->orientacao==ESQUERDA) {
+            submarino->posicao.X -=CAMINHOPORLOOP;
+        } else {// se nao esta virado para a esquerda apenas vira ele
+            submarino->orientacao = ESQUERDA;
+        }
+        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
+        if (submarino->posicao.Y==LINHAINICIAL) {//necessario imprimir agua se estivar na linha da agua
+            imprime_agua();
+        }
+    }
+}
+
+
+void switch_game_loop( SUBMARINO *submarino, TORPEDO *torpedo, int *sair) {// detecta qual os comandos do jogador e os executa
+    char a;
     if (kbhit()) {
-        *a = getch();
-        if (*a==TECLASAUXILIARES) {
-            *a = getch();
-            switch(*a) {
+        a = getch();
+        if (a==TECLASAUXILIARES) {
+            a = getch();
+            switch(a) {// verifica qual seta apertou e faz as alteracoes necessarias
                 case SETACIMA:
-                    if (submarino->posicao.Y-2*ALTURASUBMARINO+1>LINHAINTERFACESUPERIOR) {
-                        apaga_submarino(*submarino);
-                        submarino->posicao.Y -=ALTURASUBMARINO;
-                        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
-                        if (submarino->posicao.Y==LINHAINICIAL) {
-                            imprime_agua();
-                        }
-                    }
+                    atualiza_sub_cima(submarino);
                     break;
                 case SETABAIXO:
-                    if (submarino->posicao.Y+ALTURASUBMARINO<LINHAINTERFACEINFERIOR) {
-                        apaga_submarino(*submarino);
-                        if (submarino->posicao.Y==LINHAINICIAL) {
-                            imprime_agua();
-                        }
-                        submarino->posicao.Y +=ALTURASUBMARINO;
-                        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
-                    }
+                    atualiza_sub_baixo(submarino);
                     break;
                 case SETADIREITA:
-                    if (submarino->posicao.X+COMPRIMENTOSUBMARINO+CAMINHOPORLOOP-1<COLUNA2) {
-                        apaga_submarino(*submarino);
-                        if (submarino->orientacao==DIREITA) {
-                            submarino->posicao.X +=CAMINHOPORLOOP;
-                        }else {
-                            submarino->orientacao = DIREITA;
-                        }
-                        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
-                        if (submarino->posicao.Y==LINHAINICIAL) {
-                            imprime_agua();
-                        }
-                    }
-                    //x +=1;
+                    atualiza_sub_direita(submarino);
                     break;
                 case SETAESQUERDA:
-                    if (submarino->posicao.X-CAMINHOPORLOOP>COLUNA1) {
-                        apaga_submarino(*submarino);
-                        if (submarino->orientacao==ESQUERDA) {
-                            submarino->posicao.X -=CAMINHOPORLOOP;
-                        } else {
-                            submarino->orientacao = ESQUERDA;
-                        }
-                        imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
-                        if (submarino->posicao.Y==LINHAINICIAL) {
-                            imprime_agua();
-                        }
-                    }
+                    atualiza_sub_esquerda(submarino);
                     break;
             }
-        } else if(*a == ESPACO){
+        } else if(a == ESPACO){// se foi disparado o torpedo
             dispara_torpedo(submarino, torpedo);
-        } else if(*a == ESC) {
+        } else if(a == ESC) {// se apertou esc
             imprime_menu_pausa(sair);
         }
     }
@@ -675,12 +696,11 @@ void imprime_mergulhadores_vazio() {//apaga mergulhadores da interface do jogado
 
 
 // atualiza num de mergulhadores na interface do jogador
-void atualiza_interface_mergulhadores(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
-    if (submarino->posicao.Y==LINHAINICIAL) {// deleta todos mergulhadores da interface
+void atualiza_interface_mergulhadores(SUBMARINO submarino,INTERFACEJOGO interface_jogo) {
+    if (submarino.posicao.Y==LINHAINICIAL) {// deleta todos mergulhadores da interface
         imprime_mergulhadores_vazio();
-        //submarino->mergulhadores = 0;
     } else {// adiciona um mergulhador na interface
-        cputsxy(COLUNA1+1+(COMPRIMENTOMERGULHADOR+1)*interface_jogo->mergulhadores,LINHAINTERFACEINFERIOR+1,">->O ");
+        cputsxy(COLUNA1+1+(COMPRIMENTOMERGULHADOR+1)*interface_jogo.mergulhadores,LINHAINTERFACEINFERIOR+1,">->O ");
     }
 }
 
@@ -691,10 +711,10 @@ void imprime_interface_pontuacao() {//imprime interface inicial da pontuacao
 }
 
 // imprime a pontuacao atual do jogador na posicao adequada,apagando antes a pontuacao que estava no lugar
-void atualiza_pontuacao(INTERFACEJOGO *interface_jogo) {
+void atualiza_pontuacao(INTERFACEJOGO interface_jogo) {
     cputsxy(COLUNA1+9,LINHAINTERFACESUPERIOR-1,"               ");
     gotoxy(COLUNA1+9,LINHAINTERFACESUPERIOR-1);
-    cprintf("%d",interface_jogo->pontuacao);
+    cprintf("%d",interface_jogo.pontuacao);
 }
 
 // verifica se os mergulhadores no sub foram resgatados, e caso tenham sido aumenta a posicao do sub
@@ -706,21 +726,19 @@ void resgatou_mergulhadores(SUBMARINO *submarino) {
 }
 
 // atualiza o numero de vidas na interface do jogo
-void atualiza_vidas(INTERFACEJOGO *interface_jogo) {
-    cputsxy(COLUNAVIDAS+3*(interface_jogo->vidas-1),LINHAINTERFACESUPERIOR-1,"  ");
+void atualiza_vidas(INTERFACEJOGO interface_jogo) {
+    cputsxy(COLUNAVIDAS+3*(interface_jogo.vidas-1),LINHAINTERFACESUPERIOR-1,"  ");
 }
 
 // atualiza o oxigenio na interface do jogo
-void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
+void atualiza_oxigenio(SUBMARINO submarino,INTERFACEJOGO interface_jogo) {
     int i;
-    if ((interface_jogo->oxigenio)<(submarino->oxigenio)) {// imprime oxigenio
-        //cputsxy(COLUNAOXIGENIO+11+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1,"|");
-        for (i = interface_jogo->oxigenio; i < submarino->oxigenio ;i++) {
+    if ((interface_jogo.oxigenio)<(submarino.oxigenio)) {// imprime oxigenio
+        for (i = interface_jogo.oxigenio; i < submarino.oxigenio ;i++) {
             cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|");
         }
-    } else if((interface_jogo->oxigenio)>(submarino->oxigenio)) {// deletar oxigenio
-        //cputsxy(COLUNAOXIGENIO+11-1+(interface_jogo->oxigenio+9)/BLOCOSDEOXIGENIO,LINHAINTERFACEINFERIOR+1," ");
-        for (i = interface_jogo->oxigenio; i > submarino->oxigenio ;i--) {
+    } else if((interface_jogo.oxigenio)>(submarino.oxigenio)) {// deletar oxigenio
+        for (i = interface_jogo.oxigenio; i > submarino.oxigenio ;i--) {
             cputsxy(COLUNAOXIGENIO+11-1+i,LINHAINTERFACEINFERIOR+1," ");
         }
     }
@@ -729,14 +747,13 @@ void atualiza_oxigenio(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
 // quando o submarino morre, recoloca ele na posicao inicial
 void respawn_submarino(SUBMARINO *submarino) {
     MessageBeep(MB_ICONWARNING);
-    if (submarino->vidas>0) {// caso nao tenha mais vidas, nao � necessario recolocar na pos inicial
+    if (submarino->vidas>0) {// caso nao tenha mais vidas, nao eh necessario recolocar na pos inicial
         apaga_submarino(*submarino);
         submarino->posicao.X = COLUNAINICIAL;
         submarino->posicao.Y = LINHAINICIAL;
         submarino->orientacao = DIREITA;
         submarino->oxigenio = OXIGENIOMAXIMO;
         submarino->mergulhadores = 0;
-        //printf("\a");
         imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
         imprime_agua();
     }
@@ -754,7 +771,6 @@ void testa_morte_oxigenio (SUBMARINO *submarino) {
 // atualiza o oxigenio do submarino caso seja necessario
 void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
-        //if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
        if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO<TEMPODELOOP && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
             submarino->oxigenio--;
         } else if (submarino->tempo_agua==0) {
@@ -762,9 +778,8 @@ void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
         }
     } else if (submarino->oxigenio<OXIGENIOMAXIMO) {
         if (submarino->tempo_agua!=0) {
-            //submarino->tempo_agua==0;
-            submarino->tempo_agua = 0;// estava como == mas na real essa parte do codigo pode tira eu acho
-            // pq n precisa reseta pra zero mas vou deixar assim
+            submarino->tempo_agua = 0;
+            // reseta o valor por conveniencia apenas
         }
         submarino->oxigenio = OXIGENIOMAXIMO;
     }
@@ -773,7 +788,6 @@ void atualiza_oxigenio_submarino(SUBMARINO *submarino) {
 // atualiza a pontuacao do jogador se ele estiver submerso
 void atualiza_pontuacao_submerso(SUBMARINO *submarino) {
     if (submarino->posicao.Y!=LINHAINICIAL) {
-        //if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO==0 && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
        if ((submarino->tempo-submarino->tempo_agua)%SEGUNDO<TEMPODELOOP && submarino->tempo_agua!=0 && submarino->tempo_agua!=submarino->tempo) {
             submarino->pontuacao++;
        }
@@ -786,81 +800,81 @@ void atualiza_tempo (SUBMARINO *submarino ) {
 }
 
 // imprime a quantidade de vidas inicial na tela
-void imprime_vidas(INTERFACEJOGO *interface_jogo) {
+void imprime_vidas(INTERFACEJOGO interface_jogo) {
     int i;
-    textcolor(LIGHTRED);
-    for (i = 0; i<interface_jogo->vidas;i++) {
+    textcolor(CORVIDAS);
+    for (i = 0; i<interface_jogo.vidas;i++) {
        cputsxy(COLUNAVIDAS+3*i,LINHAINTERFACESUPERIOR-1,"<3 ");
     }
-    textcolor(WHITE);
+    textcolor(CORTEXTO);
 }
 
 // imprime o oxigenio inicial na tela
-void imprime_oxigenio(INTERFACEJOGO *interface_jogo) {
+void imprime_oxigenio(INTERFACEJOGO interface_jogo) {
     int i;
-    //int oxigenio = 30;
     putchxy(COLUNA2-1,LINHAINTERFACEINFERIOR+1,']');
     cputsxy(COLUNAOXIGENIO,LINHAINTERFACEINFERIOR+1,"Oxigenio: [");
-    for (i = 0; i<interface_jogo->oxigenio;i++) {
+    for (i = 0; i<interface_jogo.oxigenio;i++) {
        cputsxy(COLUNAOXIGENIO+11+i,LINHAINTERFACEINFERIOR+1,"|");
     }
 }
 
 // atualiza o tempo de jogo na interface
-void atualiza_interface_tempo (INTERFACEJOGO *interface_jogo) {
-    gotoxy(38,2);// acho q nas horas n vai da problema
-    cprintf("%02d:%02d:%02d",interface_jogo->tempo/1000/60/60,interface_jogo->tempo/1000/60,interface_jogo->tempo/1000%60);
+void atualiza_interface_tempo (INTERFACEJOGO interface_jogo) {
+    gotoxy(38,2);
+    cprintf("%02d:%02d:%02d",interface_jogo.tempo/1000/60/60,interface_jogo.tempo/1000/60,interface_jogo.tempo/1000%60);
 }
 
 // faz verificacoes entre os valores dos campos do sub e da interface para saber se eh necessario
 // atualizar a interface e se for faz a atualizacao
 void atualiza_interface(SUBMARINO *submarino,INTERFACEJOGO *interface_jogo) {
     textbackground(CORINTERFACE);
-    if (submarino->pontuacao!=interface_jogo->pontuacao) {
+    if (submarino->pontuacao!=interface_jogo->pontuacao) {// se a pontuacao esta diferente
         interface_jogo->pontuacao = submarino->pontuacao;
-        atualiza_pontuacao(interface_jogo);
+        atualiza_pontuacao(*interface_jogo);
     }
-    if (submarino->oxigenio!=interface_jogo->oxigenio) {
-        atualiza_oxigenio(submarino,interface_jogo);
+    if (submarino->oxigenio!=interface_jogo->oxigenio) {// se o oxigenio esta diferente
+        atualiza_oxigenio(*submarino,*interface_jogo);
         interface_jogo->oxigenio = submarino->oxigenio;
     }
-    if (submarino->vidas!=interface_jogo->vidas) {
-        atualiza_vidas(interface_jogo);
+    if (submarino->vidas!=interface_jogo->vidas) {// se as vidas estao diferentes
+        atualiza_vidas(*interface_jogo);
         interface_jogo->vidas = submarino->vidas;
     }
-    if (submarino->mergulhadores!=interface_jogo->mergulhadores) {
-        atualiza_interface_mergulhadores(submarino,interface_jogo);
+    if (submarino->mergulhadores!=interface_jogo->mergulhadores) {// se os mergulhadores estao diferentes
+        atualiza_interface_mergulhadores(*submarino,*interface_jogo);
         interface_jogo->mergulhadores = submarino->mergulhadores;
     }
-    if ((submarino->tempo-interface_jogo->tempo)%SEGUNDO<TEMPODELOOP) {// a diferen�a sempre sera !=0
+    // a diferenca sempre sera !=0, logo testa se a diferenca eh maior que 1 segundo
+    if ((submarino->tempo-interface_jogo->tempo)%SEGUNDO<TEMPODELOOP) {
         interface_jogo->tempo = submarino->tempo;
-        atualiza_interface_tempo(interface_jogo);
+        atualiza_interface_tempo(*interface_jogo);
     }
     textbackground(CORAGUA);
 }
 
-void imprime_interface_mergulhadores(INTERFACEJOGO *interface_jogo) {
+void imprime_interface_mergulhadores(INTERFACEJOGO interface_jogo) {// imprime mergulhadores na interface inicialmente
     int i;
-    for (i = 0; i<interface_jogo->mergulhadores;i++) {
+    for (i = 0; i<interface_jogo.mergulhadores;i++) {
         cputsxy(COLUNA1+1+(COMPRIMENTOMERGULHADOR+1)*i,LINHAINTERFACEINFERIOR+1,">->O ");
     }
 }
 
 
-void imprime_interface(INTERFACEJOGO *interface_jogo) {// imprime a interface inicial
+void imprime_interface(INTERFACEJOGO interface_jogo) {// imprime a interface inicial
     textbackground(CORINTERFACE);
     imprime_interface_pontuacao();
-    atualiza_pontuacao(interface_jogo);//
-    imprime_oxigenio(interface_jogo);// imprime completo
+    atualiza_pontuacao(interface_jogo);
+    imprime_oxigenio(interface_jogo);
     imprime_vidas(interface_jogo);
     atualiza_interface_tempo(interface_jogo);
     imprime_interface_mergulhadores(interface_jogo);
     textbackground(CORAGUA);
 }
 
-void atualiza_obstaculo_individual(COORD *posicao, int orientacao) {
-    // atualiza a pos de um obstaculo ou seja se esta virado para esquerda anda o caminhoporloop para esquerda
-    // se esta virado para a direita anda o caminhoporllop para direita
+// atualiza a pos de um obstaculo ou seja se esta virado para esquerda anda o caminhoporloop para esquerda
+// se esta virado para a direita anda o caminhoporllop para direita
+void atualiza_obstaculo_individual(COORD *posicao, int orientacao) { 
     if (orientacao==ESQUERDA) {
         posicao->X -= CAMINHOPORLOOP;
     } else {
@@ -868,46 +882,39 @@ void atualiza_obstaculo_individual(COORD *posicao, int orientacao) {
     }
 }
 
-void testa_colisao_tela_inimigo(OBSTACULO *obstaculo) {// testa a colisao do sub inimigo com a tela
+void testa_colisao_tela_inimigo(OBSTACULO *obstaculo) {// testa a colisao do sub inimigo com a tela e se colidiu altera o seu tipo
     if (obstaculo->posicao.X+COMPRIMENTOSUBMARINO-1>=COLUNA2 || obstaculo->posicao.X<=COLUNA1) {
-        obstaculo->tipo = 0;
-    } //else {
-    //    imprime_submarino_inimigo(*obstaculo);
-    //}
+        obstaculo->tipo = SEMOBSTACULO;
+    } 
 }
-void testa_colisao_tela_mergulhador(OBSTACULO *obstaculo) {// testa a colisao do mergulhador com a tela
+void testa_colisao_tela_mergulhador(OBSTACULO *obstaculo) {// testa a colisao do mergulhador com a tela e se colidiu altera o seu tipo
     if (obstaculo->posicao.X+COMPRIMENTOMERGULHADOR-1>=COLUNA2 || obstaculo->posicao.X<=COLUNA1) {
-        obstaculo->tipo = 0;
-    }// else {
-     //   imprime_mergulhador(*obstaculo);
-    //}
+        obstaculo->tipo = SEMOBSTACULO;
+    }
 }
 
 // testa a colisao do torpedo com um obstaculo e nao um vetor de obstaculos
 // caso colidam faz as atualizacoes necessarias na pontuacao do sub,no jogador e no obstaculo
 void testa_colisao_torpedo_individual (TORPEDO *torpedo, OBSTACULO *obstaculo, SUBMARINO *sub){
-    //int i;
-    //for(i = 0; i < NUMOBSTACULOS; i++){//percorre o array de obstaculos
-        if(torpedo->status != NAODISPARADO){
-            if(obstaculo->tipo == SUBMARINOINIMIGO && colidiu_torpedo_submarino_inimigo (torpedo->posicao,obstaculo->posicao)){//chama a funcao para testar se houve colisao
-                torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
-                apaga_torpedo(*torpedo);
-                apaga_submarino_inimigo(*obstaculo);//apaga o sub inimigo atingido
-                obstaculo->tipo = SEMOBSTACULO;
-                sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;//aumenta a pontuacao do jogador por ter destruido um sub
-            }else if(obstaculo->tipo == MERGULHADOR && colidiu_torpedo_mergulhador (torpedo->posicao,obstaculo->posicao)){
-                torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
-                apaga_torpedo(*torpedo);
-                apaga_mergulhador(*obstaculo);
-                obstaculo->tipo = SEMOBSTACULO;
-                if(sub->pontuacao >= PENALIDADEMORTEMERGULHADOR){
-                    sub->pontuacao -= PENALIDADEMORTEMERGULHADOR;
-                } else {
-                    sub->pontuacao = 0;
-                }
+    if(torpedo->status != NAODISPARADO){
+        if(obstaculo->tipo == SUBMARINOINIMIGO && colidiu_torpedo_submarino_inimigo (torpedo->posicao,obstaculo->posicao)){//chama a funcao para testar se houve colisao
+            torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+            apaga_torpedo(*torpedo);
+            apaga_submarino_inimigo(*obstaculo);//apaga o sub inimigo atingido
+            obstaculo->tipo = SEMOBSTACULO;
+            sub->pontuacao += PONTUACAODESTRUICAOSUBINIMIGO;//aumenta a pontuacao do jogador por ter destruido um sub
+        }else if(obstaculo->tipo == MERGULHADOR && colidiu_torpedo_mergulhador (torpedo->posicao,obstaculo->posicao)){
+            torpedo->status = NAODISPARADO;//reseta o status do torpedo para que ele seja apagado e o jogador possa disparar outros
+            apaga_torpedo(*torpedo);
+            apaga_mergulhador(*obstaculo);
+            obstaculo->tipo = SEMOBSTACULO;
+            if(sub->pontuacao >= PENALIDADEMORTEMERGULHADOR){// penaliza o jogador por ter matado um mergulhador
+                sub->pontuacao -= PENALIDADEMORTEMERGULHADOR;
+            } else {
+                sub->pontuacao = 0;
             }
         }
-    //}
+    }
 }
 
 // verifica se um obstaculo eh sub inimigo ou mergulhador e imprime ele
@@ -918,8 +925,6 @@ void imprime_obstaculo_individual(OBSTACULO obstaculo) {
         imprime_mergulhador(obstaculo.posicao,obstaculo.orientacao,obstaculo.cor);
     }
 }
-
-
 
 // testa a colisao entre o submarino e um sub inimigo,caso colidam faz as atualizacoes necessarias
 void testa_colisao_submarino_inimigo(SUBMARINO *submarino, OBSTACULO *obstaculo) {
@@ -936,8 +941,8 @@ void testa_colisao_submarino_mergulhador(SUBMARINO *submarino, OBSTACULO *obstac
         obstaculo->tipo = SEMOBSTACULO;//reseta o tipo do obstaculo
         if (submarino->mergulhadores < MERGULHADORESMAXIMOS) {//testa
            submarino->mergulhadores++;
-          //atualiza_interface_mergulhadores(submarino);
         }
+        // imprimi o sub novamente pois ao apagar o mergulhador pode ter apagado parte do sub
         imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
     }
 }
@@ -964,9 +969,9 @@ void percorre_vetor_obstaculos(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO
     }
 }
 
-int colisao_menu_submarino(OBSTACULO obstaculo) {
+int colisao_menu_submarino(OBSTACULO obstaculo) {// verifica se o submarino colidiu com o menu
     int verifica_y, verifica_x1, verifica_x2, verifica_x3;
-    verifica_y = obstaculo.posicao.Y - (ALTURASUBMARINO-1)<=METADEY+4 && obstaculo.posicao.Y>=METADEY;
+    verifica_y = obstaculo.posicao.Y - (ALTURASUBMARINO-1)<=METADEY+SAIR && obstaculo.posicao.Y>=METADEY;
     verifica_x1 = obstaculo.posicao.X <= METADEX-1 && obstaculo.posicao.X + COMPRIMENTOSUBMARINO - 1 >= METADEX-1;
     verifica_x2 = obstaculo.posicao.X <= METADEX + COMPRIMENTOMENU -1 && obstaculo.posicao.X + COMPRIMENTOSUBMARINO - 1>= METADEX + COMPRIMENTOMENU -1;
     verifica_x3 = obstaculo.posicao.X <= METADEX + COMPRIMENTOMENU -1 && obstaculo.posicao.X + COMPRIMENTOMERGULHADOR - 1>= METADEX-1;
@@ -978,18 +983,16 @@ int colisao_menu_submarino(OBSTACULO obstaculo) {
 }
 
 
-void percorre_vetor_obstaculos_menu (OBSTACULO *obstaculos) {
+void percorre_vetor_obstaculos_menu (OBSTACULO *obstaculos) {// atualiza a posicao dos obstaculos do menu
     int i;
     for (i = 0;i<NUMOBSTACULOSMENU;i++) {
         if (obstaculos[i].tipo==SUBMARINOINIMIGO) {
-            if (!colisao_menu_submarino(obstaculos[i])) {
+            if (!colisao_menu_submarino(obstaculos[i])) {// se nao colidiu com o menu apaga o submarino
                 apaga_submarino_inimigo(obstaculos[i]);
             }
             atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
-            if (!colisao_menu_submarino(obstaculos[i])) {
-                testa_colisao_tela_inimigo(&obstaculos[i]);
-                //imprime_obstaculo_individual_cor(obstaculos[i],YELLOW);
-                //verifica_inimigo_individual_cor(obstaculos[i],YELLOW);
+            if (!colisao_menu_submarino(obstaculos[i])) {// se depois de atualizar a posicao nao colidiu com o menu
+                testa_colisao_tela_inimigo(&obstaculos[i]);// testa a colisao com a tela
                 imprime_obstaculo_individual(obstaculos[i]);
             }
         }
@@ -1056,22 +1059,6 @@ void bubblesort(FILE **arq){
     gravarRecordes(nomes, pontuacao);
 
 }
-int testaIntegridade(FILE *arq){
-    //FILE *arq;
-    int i = 0;
-    int tentativas = 0;
-    char tmp[256];
-    rewind(arq);
-    while(!feof(arq)){
-        fgets(tmp, sizeof(tmp), arq);
-        i++;
-    }
-    if(i == NUMRECORDES + 1){
-        return 1;
-    }else{
-        return 0;
-    }
-}
 
 
 int tam_int_para_char(int num) {// retorna o numero de chars necessarios para armazenar um inteiro positivo
@@ -1089,109 +1076,82 @@ int teste_inteiro_valido(char *str) {// testa se o valor em str eh um inteiro va
     return valor_str<=(long long)INT_MAX;
 }
 
-// obs: troquei para so poder botar no nome digitos letras e .
-// a funcao funciona mas so verifica se o numero eh um int valido so verifica se tem o num
-// de digitos validos e tambem n verifica se o nome so tem caracteres que sao . digitos ou letras
-// obs a funcao recordes vai dar problema quando altera o arquivo pq mesmo q tenha a estrutura certa
-// vai precisar reordenar ele pois pode estar com a ordem errada
-// essas alteracoes a gente pode fazer na aula
-int testaIntegridade2(FILE *arq){
-    //FILE *arq;
-    int i = 0;
-    int posicao_branco;
-    int erro = 0;
-    int tentativas = 0;
+void testa_nome(int *erro,FILE **arq) {// testa se o que deveria ser o nome do jogador eh um nome valido
+    char letra;
+    int tam_nome = 0;
+    int separador_encontrado = 0;
+    while(!separador_encontrado && !*erro && tam_nome<MAXSTRINGNOME) {
+        letra = getc(*arq);
+        tam_nome++;
+        if (letra == '\n' || letra == EOF) {
+            *erro = 1;
+        } else if (letra == ';') {
+            separador_encontrado = 1;
+        } else if(tam_nome==MAXSTRINGNOME) {
+            *erro = 1;
+        } else if (!letra_ponto_digito_espaco(letra)) {
+            *erro = 1;
+        }
+    }
+}
+
+void testa_pontos(int *erro, FILE **arq) {
+    int int_max = tam_int_para_char(INT_MAX);// numero de chars necessarios para imprimir o inteiro maximo 
+    int num_digitos = 0;// numero de digitos dos pontos 
+    char tmp[int_max+1];// variavel temporaria para guardar a pontuacao
     int separador_encontrado = 0;
     char letra;
-    int int_max = tam_int_para_char(INT_MAX);
-    int num_letras = 0;
-    int tam_nome;
-    char tmp2[MAXSTRINGNOME];
-    char tmp[int_max+1];
-
     tmp[int_max] = '\0';
 
-    rewind(arq);
+    while(!*erro && !separador_encontrado && num_digitos<=int_max){// pode stourar num letras
+        letra = getc(*arq);
+        if (letra<='9' && letra>='0') {// numeros na tabela ascii
+            tmp[num_digitos] = letra;
+            num_digitos++;
+        } else if(letra=='\n' || letra==EOF) {
+            *erro = 1;
+        } else if (letra==';') {
+            separador_encontrado = 1;
+        } else {
+            *erro = 1;
+        }
+    }
+    if (num_digitos>=int_max && !*erro) {
+        if (!teste_inteiro_valido(tmp)) {
+            *erro = 1;
+        }
+    }
+    // tem que ter encontrado o separador
+    if (!separador_encontrado) {
+        *erro = 1;
+    } else {
+        letra = getc(*arq);
+        if (letra!='\n') {
+            *erro = 1;
+        }
+    }
+}
+
+// verifica se o arquivo com os recordes do jogo esta correto
+int testaIntegridade2(FILE *arq){
+    int i = 0;
+    int erro = 0;// para saber se ocorreu algum erro
+    char letra;
+
     while(!feof(arq) && !erro && i != NUMRECORDES){
-        // ideia: ler ate o ;(proibir jogador de colocar ;)
+        // ideia: ler ate o ;
         // se leu no max 8 entao parte para testar numero
         // numero pode ter ate int_max
-
-        tam_nome = 0;//
-        separador_encontrado = 0;
-        while(!separador_encontrado && !erro && tam_nome<MAXSTRINGNOME) {//msn e n msn-1 pq vai pegar o ;
-        //while(!separador_encontrado && !erro) {
-
-            letra = getc(arq);
-            tam_nome++;
-            if (letra == '\n' || letra == EOF) {
-                erro = 1;
-            } else if (letra == ';') {// eof para o ultimo caso
-                separador_encontrado = 1;
-            } else if(tam_nome==MAXSTRINGNOME) {
-                erro = 1;
-            } else if (!letra_ponto_digito_espaco(letra)) {
-                erro = 1;
-            }
-        }
-        // se n achou separador, ou achou eof,\n ou estourou o tamanho mas em todos esses casos erro = 1 logo nem entrara no while
-        // achou separador logo tem q verificar ate \n( no caso do separador encontrado se o ; se for o EOF nao entra no while)
-
-        //ou encontrara o \n ou o eof ou ; unico caso certo eh o ; com o tamanho adequado
-        // tem q ler tudo ate o ; e quando achar se tiver o tam certo e o proximo for \n esta certo
-        num_letras = 0;
-        separador_encontrado = 0;
-        //while(!erro && letra!='\n' && letra!=EOF && num_letras<=int_max){
-        while(!erro && !separador_encontrado && num_letras<=int_max){// pode stourar num letras
-            letra = getc(arq);
-            if (letra<=57 && letra>=48) {// numeros na tabela ascii
-                tmp[num_letras] = letra;
-                num_letras++;
-            } else if(letra=='\n' || letra==EOF) {
-                erro = 1;
-            } else if (letra==';') {
-                separador_encontrado = 1;
-            } else {
-                erro = 1;
-            }
-        }
-        if (num_letras>=int_max && !erro) {
-            if (!teste_inteiro_valido(tmp)) {
-                erro = 1;
-            }
-        }
-
-        // tem que ter encontrado o separador
-        if (!separador_encontrado) {
-            erro = 1;
-        } else {
-            letra = getc(arq);
-            if (letra!='\n') {
-                erro = 1;
-            }
-        }
-        /*
-        if (num_letras>int_max) {//&& getc(arq)=='\n'
-            erro = 1;
-        }*/
-
-
-
-
+        testa_nome(&erro,&arq);
+        testa_pontos(&erro,&arq);
         i++;
     }
-
+    // depois de ler 10 o arquivo deveria ter acabado, entao eh verificado se chegou-se no fim
     letra = getc(arq);
     if (letra!=EOF) {
         erro = 1;
     }
-
-    if(erro == 0){
-    //if(i == NUMRECORDES + 1 && erro == 0){
-        return 1;
-    }else{
-        return 0;
-    }
+    return !erro;
 }
 
 
@@ -1238,46 +1198,41 @@ void guarda_pontuacao(SUBMARINO sub){
 
 }
 
-// funcao move o submarino e os obstaculos
-// n vou comentar individualmente as condicoes para ver se o submarino atravessou a borda mas o raciocinio eh semelhante ao usado
-// para ver se o submarino inimigo fez a mesma coisa
-void game_loop(SUBMARINO *submarino, OBSTACULO *obstaculos, TORPEDO *torpedo){// deixei ainda com dois switch por que vai ter 3 comandos esc espaco e setas
-    char a;
+void game_loop(SUBMARINO submarino, OBSTACULO *obstaculos, TORPEDO torpedo){// loop de jogo
     int sair;
-    INTERFACEJOGO interface_jogo = {submarino->vidas, submarino->mergulhadores, submarino->oxigenio, submarino->pontuacao,submarino->tempo};
+    INTERFACEJOGO interface_jogo = {submarino.vidas, submarino.mergulhadores, submarino.oxigenio, submarino.pontuacao,submarino.tempo};
     pintar_jogo();
     imprime_moldura();
-    imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);// imprime o submarino inicialmente
+    imprime_submarino(submarino.posicao,submarino.orientacao,submarino.cor);// imprime o submarino inicialmente
     imprime_obstaculos(obstaculos);//para caso tenha carregado o jogo imprima os obstaculos do load
     imprime_agua();
-    imprime_interface(&interface_jogo);
+    imprime_interface(interface_jogo);
     do {
         Sleep(TEMPODELOOP);// para dar um tempo entre loops
-        atualiza_tempo (submarino);
-        gera_obstaculos(obstaculos,NUMOBSTACULOS,PORCENTAGEMMERGULHADORES,BLOCOINICIALSPAWNJOGO,CORSUBMARINOINIMIGO,CORMERGULHADOR);// funcao que gera obstaculos nas posicoes que n tem obstaculos
-        switch_game_loop(&a,submarino,obstaculos, torpedo,&sair );
+        atualiza_tempo (&submarino);
+        gera_obstaculos(obstaculos,NUMOBSTACULOS,PORCENTAGEMMERGULHADORES,BLOCOINICIALSPAWNJOGO,CORSUBMARINOINIMIGO,CORMERGULHADOR);
+        switch_game_loop(&submarino, &torpedo,&sair );
         // depois que faz o comando do submarino apaga os obstaculos na tela e atualiza as posicoes dos obstaculos
         // dai testa se alguma dessas novas posicoes bate na tela, ou seja se o obstaculo atravessou a tela
         // se esse for o caso esse obstaculo desaparece e imprime os obstaculos que ainda nao atravessaram
-        percorre_vetor_obstaculos(obstaculos,torpedo,submarino);
-        imprime_submarino_controla_agua(*submarino);
-        move_torpedo(torpedo);
-        desenha_torpedo(*torpedo);
-        resgatou_mergulhadores(submarino);
-        atualiza_oxigenio_submarino(submarino);
-        atualiza_pontuacao_submerso(submarino);
-        testa_morte_oxigenio (submarino);
-        atualiza_interface(submarino,&interface_jogo);
-    } while(sair!=1 && submarino->vidas>0);
+        percorre_vetor_obstaculos(obstaculos,&torpedo,&submarino);
+        imprime_submarino_controla_agua(submarino);
+        move_torpedo(&torpedo);
+        desenha_torpedo(torpedo);
+        resgatou_mergulhadores(&submarino);
+        atualiza_oxigenio_submarino(&submarino);
+        atualiza_pontuacao_submerso(&submarino);
+        testa_morte_oxigenio (&submarino);
+        atualiza_interface(&submarino,&interface_jogo);
+    } while(sair!=1 && submarino.vidas>0);
 
 
-    if (submarino->vidas==0) {
-        animacao_sem_vidas(*submarino,obstaculos);
-        guarda_pontuacao(*submarino);
-    } else {
-        tenta_guardar_estrutura(*submarino,obstaculos,*torpedo);
+    if (submarino.vidas==0) {//se o usuario morreu
+        animacao_sem_vidas(submarino,obstaculos);
+        guarda_pontuacao(submarino);
+    } else {// se o usuario tem vidas,tenta salvar o jogo
+        tenta_guardar_estrutura(submarino,obstaculos,torpedo);
     }
-    //textbackground(CORMENU);
 }
 
 void imprime_moldura() {// imprime a moldura do jogo
@@ -1315,7 +1270,7 @@ void imprime_opcoes_menu_salvar() {// imprime opcoes menu salvar
     cputsxy(METADEX,METADEY+3,"Nao");
 }
 
-// pergunta ao usuario se deseja salvar o jogo e caso queira tenta salvar o jogo
+// pergunta ao usuario se deseja salvar o jogo e caso deseje, tenta salvar o jogo
 // caso nao consiga salvar pergunta ao usuario se quer tentar novamente ou desistir
 // ate que o usuario desista ou o jogo seja salvo com sucesso
 void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
@@ -1328,11 +1283,11 @@ void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO 
     imprime_interface_salvar(&opcao);
 
     while(opcao==SALVAR && gravou==0) {
-        gravou = guarda_estrutura(submarino,obstaculos,torpedo);
-        if (!gravou) {
+        gravou = guarda_estrutura(submarino,obstaculos,torpedo);// tenta gravar
+        if (!gravou) {// se nao conseguiu gravar, pergunta pro usuario se quer tentar novamente
             cputsxy(METADEX,METADEY+1,"Deseja tentar salvar novamente:");
             imprime_interface_salvar(&opcao);
-        } else {
+        } else {// se conseguiu encerra
             strcpy(arquivo,submarino.nome);
             strcat(arquivo,".bin");
             cputsxy(METADEX,METADEY,"JOGO SALVO EM");
@@ -1342,35 +1297,31 @@ void tenta_guardar_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO 
     }
 }
 
-// funcao que salva o jogo em um arquivo bin
-int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {
+
+int guarda_estrutura(SUBMARINO submarino,OBSTACULO obstaculos[],TORPEDO torpedo) {// funcao que salva o jogo em um arquivo bin
     FILE *arq;
-    JOGO jogo;
-    char nome[MAXSTRINGARQ];
+    JOGO jogo;// para guardar informacoes do jogo
+    char nome[MAXSTRINGARQ];// nome do arquivo
     strcpy(nome,submarino.nome);
     strcat(nome,".bin");
     arq = fopen(nome,"wb");
     limpa_tela_moldura();
-    Sleep(SALVANDOJOGO);
-    if (arq) {
-    //if (fwrite(&submarino.nome,sizeof(submarino.nome),1,arq) == 1 && fwrite(&submarino.vidas,sizeof(submarino.vidas),1,arq) == 1 && fwrite(&submarino.pontuacao,sizeof(submarino.pontuacao),1,arq) == 1 && fwrite(&submarino.tempo,sizeof(submarino.tempo),1,arq) == 1) {
-    //if (fwrite(&submarino,sizeof(SUBMARINO),1,arq) == 1 && fwrite(obstaculos,sizeof(OBSTACULO),NUMOBSTACULOS,arq) == NUMOBSTACULOS && fwrite(&torpedo,sizeof(TORPEDO),1,arq) == 1) {
+    Sleep(SALVANDOJOGO);// para caso nao consigar salvar ter um tempo entre tentativas
+    if (arq) {// se conseguiu abrir
+        // copia as informacoes para jogo
         jogo.submarino = submarino;
         jogo.torpedo = torpedo;
         copia_vetor_obstaculos(jogo.obstaculos,obstaculos,NUMOBSTACULOS);
-        if (fwrite(&jogo,sizeof(JOGO),1,arq) == 1) {
-            //printf("DALE");
+        if (fwrite(&jogo,sizeof(JOGO),1,arq) == 1) {// tenta escrever no arquivo
             fclose(arq);
             return 1;
-        } else {
+        } else {// se deu erro
             cputsxy(METADEX,METADEY,"Erro ao salvar o jogo");
             fclose(arq);
-            //getch();
             return 0;
         }
-    } else {
+    } else {// se deu erro
         cputsxy(METADEX,METADEY,"Erro ao salvar o jogo");
-        //getch();
         return 0;
     }
 }
@@ -1433,20 +1384,20 @@ void carregar_jogo() {// carrega o jogo
     TORPEDO torpedo;
     if (le_estrutura(&sub,obstaculos,&torpedo)) {// se o usuario nao voltou para o menu e nao deu erro
         clrscr();
-        game_loop(&sub,obstaculos, &torpedo);
+        game_loop(sub,obstaculos, torpedo);
     }
 }
 
 
 void novo_jogo() {// comeca um novo jogo
     OBSTACULO  obstaculos [NUMOBSTACULOS] = {};
-    SUBMARINO sub = {"",{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0,0,0,YELLOW};
+    SUBMARINO sub = {"",{COLUNAINICIAL,LINHAINICIAL},DIREITA,VIDASINICIAIS,OXIGENIOMAXIMO,0,0,0,0,CORSUBMARINOJOGADOR};
     TORPEDO torpedo = {sub.posicao, NAODISPARADO};
     cputsxy(METADEX,METADEY,"Digite seu nome:");
     gotoxy(METADEX,METADEY+1);
     if (le_nome_jogador(sub.nome)) {// se o usuario nao voltou para o menu
         clrscr();
-        game_loop(&sub,obstaculos, &torpedo);
+        game_loop(sub,obstaculos, torpedo);
     }
 }
 
@@ -1465,32 +1416,30 @@ void imprime_titulo() {// imprime o titulo do jogo
 }
 
 // le a tecla digitada no menu e faz alteracoes correspondentes ao que foi pressionado
-void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior){// funcao que deve ser usada com menu
+void le_tecla_menu (char *tecla, int *opcao_atual, int lim_superior,int lim_inferior){// funcao que deve ser usada com menus
     *tecla = getch();
-    textcolor(YELLOW);
     if(*tecla==TECLASAUXILIARES) {
         *tecla = getch();
         if (*tecla==SETACIMA) {// se for cima e tiver como ir para cima vai para cima
             if(*opcao_atual!=lim_superior) {
-                putchxy(METADEX-1,METADEY+*opcao_atual,'\0');
-                (*opcao_atual)--;
-                putchxy(METADEX-1,METADEY+*opcao_atual,'>');
+                putchxy(METADEX-1,METADEY+*opcao_atual,'\0');// apaga a seta anterior
+                (*opcao_atual)--;// ajeita para a nova opcao
+                imprime_seta(*opcao_atual);
             }
         } else if (*tecla==SETABAIXO) {// se for baixo e tiver como ir para baixo vai para baixo
             if(*opcao_atual!=lim_inferior) {
-                putchxy(METADEX-1,METADEY+*opcao_atual,'\0');
-                (*opcao_atual)++;
-                putchxy(METADEX-1,METADEY+*opcao_atual,'>');
+                putchxy(METADEX-1,METADEY+*opcao_atual,'\0');// apaga a seta anterior
+                (*opcao_atual)++;// ajeita para a nova opcao
+                imprime_seta(*opcao_atual);
             }
         }
     }
-    textcolor(WHITE);
 }
 
 // funcao para imprimir novamente a opcao do menu que o usuario tem selecionado
 // pois a opcao selecionada tem cor diferente
 void switch_menu_cor(int opcao_atual) {
-    textcolor(YELLOW);
+    textcolor(CORSELECIONADA);
     switch(opcao_atual) {
         case NOVOJOGO:
                 cputsxy(METADEX, METADEY, "Novo Jogo");
@@ -1507,7 +1456,7 @@ void switch_menu_cor(int opcao_atual) {
         case SAIR:
                 cputsxy(METADEX, METADEY + 4, "Sair");
     }
-    textcolor(WHITE);
+    textcolor(CORTEXTO);
 }
 
 
@@ -1520,10 +1469,10 @@ void imprime_opcoes_menu() {// imprime as opcoes do menu
 }
 
 
-void imprime_seta_inicial(int pos) {// imprime a seta inicial que marca a opcao do menu
-    textcolor(YELLOW);
+void imprime_seta(int pos) {// imprime a seta que marca a opcao do menu
+    textcolor(CORSELECIONADA);
     putchxy(METADEX-1,METADEY+pos,'>');
-    textcolor(WHITE);
+    textcolor(CORTEXTO);
 }
 
 void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE **arq, int numero_recordes){
@@ -1658,7 +1607,7 @@ void menu(){// menu do jogo
         imprime_titulo();
         imprime_opcoes_menu();
         switch_menu_cor(opcao);
-        imprime_seta_inicial(NOVOJOGO);// imprime marcacao da primeira opcao
+        imprime_seta(NOVOJOGO);// imprime marcacao da primeira opcao
         animacao_menu(&opcao,obstaculos);
         switch_opcao_menu(opcao);
     } while (opcao!=SAIR);
