@@ -139,7 +139,13 @@
 #define LINHAINICIALTITULO 2// linha inicial do titulo do jogo
 
 #define CORSELECIONADA YELLOW// cor da opcao selecionada em um menu
-#define CORVIDAS LIGHTRED
+#define CORVIDAS LIGHTRED// cor das vidas do jogador
+
+// posicoes x e y da interface do tempo
+#define INTERFACETEMPOX 38
+#define INTERFACETEMPOY 2
+
+#define ALTURAMENUPRINCIPAL 5// 5 linhas para escrever todas opcoes
 
 //estrutura do submarino do jogador
 typedef struct  {
@@ -821,7 +827,7 @@ void imprime_oxigenio(INTERFACEJOGO interface_jogo) {
 
 // atualiza o tempo de jogo na interface
 void atualiza_interface_tempo (INTERFACEJOGO interface_jogo) {
-    gotoxy(38,2);
+    gotoxy(INTERFACETEMPOX,INTERFACETEMPOY);
     cprintf("%02d:%02d:%02d",interface_jogo.tempo/1000/60/60,interface_jogo.tempo/1000/60,interface_jogo.tempo/1000%60);
 }
 
@@ -971,7 +977,7 @@ void percorre_vetor_obstaculos(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO
 
 int colisao_menu_submarino(OBSTACULO obstaculo) {// verifica se o submarino colidiu com o menu
     int verifica_y, verifica_x1, verifica_x2, verifica_x3;
-    verifica_y = obstaculo.posicao.Y - (ALTURASUBMARINO-1)<=METADEY+SAIR && obstaculo.posicao.Y>=METADEY;
+    verifica_y = obstaculo.posicao.Y - (ALTURASUBMARINO-1)<=METADEY+ALTURAMENUPRINCIPAL-1 && obstaculo.posicao.Y>=METADEY;
     verifica_x1 = obstaculo.posicao.X <= METADEX-1 && obstaculo.posicao.X + COMPRIMENTOSUBMARINO - 1 >= METADEX-1;
     verifica_x2 = obstaculo.posicao.X <= METADEX + COMPRIMENTOMENU -1 && obstaculo.posicao.X + COMPRIMENTOSUBMARINO - 1>= METADEX + COMPRIMENTOMENU -1;
     verifica_x3 = obstaculo.posicao.X <= METADEX + COMPRIMENTOMENU -1 && obstaculo.posicao.X + COMPRIMENTOMERGULHADOR - 1>= METADEX-1;
@@ -1133,7 +1139,7 @@ void testa_pontos(int *erro, FILE **arq) {
 }
 
 // verifica se o arquivo com os recordes do jogo esta correto
-int testaIntegridade2(FILE *arq){
+int testaIntegridade(FILE *arq){
     int i = 0;
     int erro = 0;// para saber se ocorreu algum erro
     char letra;
@@ -1163,7 +1169,7 @@ void guarda_pontuacao(SUBMARINO sub){
         tentativas++;
     }
     if(tentativas < 10){
-        if(testaIntegridade2(arq)){
+        if(testaIntegridade(arq)){
             fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
             fflush(arq);
             bubblesort(&arq);
@@ -1335,47 +1341,37 @@ void copia_vetor_obstaculos(OBSTACULO vetor1[],OBSTACULO vetor2[],int tam) {
     }
 }
 
-// le de um arquivo bin os dados salvos do jogo
-int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {
+
+int le_estrutura(SUBMARINO *submarino,OBSTACULO obstaculos[],TORPEDO *torpedo) {// le de um arquivo bin os dados salvos do jogo
     FILE *arq;
     JOGO jogo;
     char nome_arq[MAXSTRINGARQ];
-    cputsxy(METADEX,METADEY,"Digite o nome do arquivo: ");
-    gotoxy(METADEX,METADEY+1);
-    //gets(nome_arq);
-    //le_nome_jogador(nome_arq);;// so para n deixar escrever mais do que precisa
+    cputsxy(METADEX,METADEY,"Digite o nome do jogador: ");
     if (le_nome_jogador(nome_arq)) {
         strcat(nome_arq,".bin");
-        cputsxy(METADEX,METADEY,"                          ");
-        cputsxy(METADEX,METADEY+1,"                          ");
+        limpa_tela_moldura();
         arq = fopen(nome_arq,"rb");
         if (arq) {
-            //if (fread(&submarino->nome,sizeof(submarino->nome),1,arq) == 1 && fread(&submarino->vidas,sizeof(submarino->vidas),1,arq) == 1 && fread(&submarino->pontuacao,sizeof(submarino->pontuacao),1,arq) == 1 && fread(&submarino->tempo,sizeof(submarino->tempo),1,arq) == 1) {
             if (fread(&jogo,sizeof(JOGO),1,arq) == 1) {
-                    /*printf("Nome: %s\n",buffer.Nome);
-                    printf("Idade: %d\n",buffer.Idade);
-                    printf("Altura: %.2f\n\n",buffer.Altura);*/
                 *submarino = jogo.submarino;
                 *torpedo = jogo.torpedo;
                 copia_vetor_obstaculos(obstaculos,jogo.obstaculos,NUMOBSTACULOS);
+                fclose(arq);
                 return 1;
 
             } else{
                 cputsxy(METADEX,METADEY,"ERRO");
                 getch();
+                fclose(arq);
                 return 0;
-                //fclose(arq); //fecha
             }
-            fclose(arq);
         } else {
             cputsxy(METADEX,METADEY,"ERRO");
             getch();
             return 0;
         }
     }
-    //} // Fim do while
-    //fecha
-} // Fim da fun��o
+} 
 
 
 void carregar_jogo() {// carrega o jogo
@@ -1533,7 +1529,7 @@ void recordes(){
     int pontuacoes[NUMRECORDES];
     FILE *arq;
     arq = fopen("recordes.txt", "r+"); //so teste para verificar se o arquivo existe
-    if(arq != NULL && testaIntegridade2(arq)){
+    if(arq != NULL && testaIntegridade(arq)){
         bubblesort(&arq);
         if (arq = fopen("recordes.txt", "r")) {
             buscaNomePontuacao(nomes, pontuacoes, &arq,NUMRECORDES);
@@ -1544,6 +1540,9 @@ void recordes(){
             printf("ERRO AO CARREGAR O ARQUIVO");
         }
     }else{
+        if (arq) {// se nao passou no testaintegridade mas conseguiu abrir o arquivo
+            fclose(arq);
+        }
         arq = fopen("recordes.txt", "w+");
         if(arq == NULL){
             printf("ERRO AO CARREGAR O ARQUIVO");
