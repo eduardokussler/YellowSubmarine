@@ -1088,10 +1088,10 @@ void imprime_submarino_controla_agua(SUBMARINO submarino) {
 void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
     int i;
     FILE *arq;
-    arq = fopen("recordes.txt", "w");
+    arq = fopen("recordes.txt", "w");//abre o arquivo para escrita
     if(arq){
         for(i = 0; i < NUMRECORDES; i++){
-            fprintf(arq, "%s;%d;\n", nomes[i], pontuacao[i]);
+            fprintf(arq, "%s;%d;\n", nomes[i], pontuacao[i]);//grava os dados ordenados no arquivo
         }
         fclose(arq);
     }else{
@@ -1100,7 +1100,8 @@ void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
     }
 
 }
-
+//ordena os dados do arquivo em ordem decrescente levando em conta a pontuacao
+//usa o metode de bubblesort
 void bubblesort( int num_recordes, int *pontuacao,char nomes[][MAXSTRINGNOME]){
     int i;
     int ind, fim, sinal, aux;
@@ -1111,12 +1112,12 @@ void bubblesort( int num_recordes, int *pontuacao,char nomes[][MAXSTRINGNOME]){
         sinal = 0;
         for(ind = 0; ind < fim; ind++){
             if(pontuacao[ind] < pontuacao[ind + 1]){
-                aux = pontuacao[ind];
-                strcpy(auxStr, nomes[ind]);//trocando de posicao os nomes
-                pontuacao[ind] = pontuacao[ind + 1];
-                strcpy(nomes[ind], nomes[ind + 1]);
-                pontuacao[ind + 1] = aux;
-                strcpy(nomes[ind + 1], auxStr);
+                aux = pontuacao[ind];//armazena a pontuacao em aux
+                strcpy(auxStr, nomes[ind]);//armazena o nome que esta no indice a ser trocado em auxStr
+                pontuacao[ind] = pontuacao[ind + 1];//troca os valores das pontuacoes
+                strcpy(nomes[ind], nomes[ind + 1]);//troca os nomes
+                pontuacao[ind + 1] = aux;//termina a troca das pontuacoes
+                strcpy(nomes[ind + 1], auxStr);//termina a troca dos nomes
                 sinal = 1;
             }
         }
@@ -1223,39 +1224,41 @@ void guarda_pontuacao(SUBMARINO sub){
     FILE *arq;
     arq = fopen("recordes.txt", "r+");
     if(arq){
-        if(testaIntegridade(arq)){
+        if(testaIntegridade(arq)){//testa se o arquivo de texto esta de acordo com os padroes estabelecidos
             fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
             fflush(arq);
-            buscaNomePontuacao(nomes, pontuacao, arq);
-            bubblesort(NUMRECORDES+1, pontuacao, nomes);
+            buscaNomePontuacao(nomes, pontuacao, arq);//le o arquivo
+            bubblesort(NUMRECORDES+1, pontuacao, nomes);//Ordena os dados do arquivo de acordo com a pontuacao
             fclose(arq);
-            gravarRecordes(nomes, pontuacao);
+            gravarRecordes(nomes, pontuacao);//grava os dados ordenados no arquivo
          }else{
+            //se o arquivo nao esta nos padroes estabelecidos
             fclose(arq);
-            arq = fopen("recordes.txt", "w+");
+            arq = fopen("recordes.txt", "w+");//cria um arquivo novo
             if(arq){
-                preencherArquivo(arq);
+                preencherArquivo(arq);//preenche o arquivo com dados pre-estabelecidos
                 fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
                 fflush(arq);
-                buscaNomePontuacao(nomes, pontuacao, arq);
-                bubblesort(NUMRECORDES+1, pontuacao, nomes);
+                buscaNomePontuacao(nomes, pontuacao, arq);//le o arquivo
+                bubblesort(NUMRECORDES+1, pontuacao, nomes);//Ordena os dados do arquivo de acordo com a pontuacao
                 fclose(arq);
-                gravarRecordes(nomes, pontuacao);
+                gravarRecordes(nomes, pontuacao);//grava os dados ordenados no arquivo
             }else{
                 cputsxy(METADEX, METADEY, "ALGO DEU ERRADO");
                 getch();
             }
         }
     }else{
-        arq = fopen("recordes.txt", "w+");
+        //se o arquivo nao existe
+        arq = fopen("recordes.txt", "w+");//cria o arquivo
         if(arq){
-            preencherArquivo(arq);
+            preencherArquivo(arq);//preenche o arquivo com dados pre-estabelecidos
             fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
             fflush(arq);
-            buscaNomePontuacao(nomes, pontuacao, arq);
-            bubblesort(NUMRECORDES+1, pontuacao, nomes);
+            buscaNomePontuacao(nomes, pontuacao, arq);//le o arquivo
+            bubblesort(NUMRECORDES+1, pontuacao, nomes);//Ordena os dados do arquivo de acordo com a pontuacao
             fclose(arq);
-            gravarRecordes(nomes, pontuacao);
+            gravarRecordes(nomes, pontuacao);//grava os dados ordenados no arquivo
         }else{
             cputsxy(METADEX, METADEY, "ALGO DEU ERRADO");
             getch();
@@ -1535,12 +1538,12 @@ void imprime_seta(int pos) {// imprime a seta que marca a opcao do menu
 
 void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE *arq){
     int i = 0;
-    char intermed[MAXLINHA];
-    rewind(arq);
+    char intermed[MAXLINHA];//variavel temporaria
+    rewind(arq);//reseta a posicao do cursor no arquivo para ficar consistente
     while(!feof(arq)){
-        if (fgets(intermed,MAXLINHA,arq)) {
-            strcpy(nomes[i],strtok(intermed,";"));
-            pontuacao[i] = atoi(strtok(NULL,";"));
+        if (fgets(intermed,MAXLINHA,arq)) {//se conseguiu ler a linha
+            strcpy(nomes[i],strtok(intermed,";"));//copia o nome pra nomes[i]
+            pontuacao[i] = atoi(strtok(NULL,";"));//copia a pontuacao para pontuacao[i]
             i++;
         }
     }
@@ -1553,18 +1556,24 @@ void mostraTabelaRecordesAuxiliar() {// mostra parte da tabela dos recordes
     textcolor(CORTEXTO);
 }
 
+//printa o nome e a pontuacao
 void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes[]){
     int i;
-    mostraTabelaRecordesAuxiliar();
+    mostraTabelaRecordesAuxiliar();//printa os indicadores de qual tipo de dado eh, acima dos valores
     for(i = 0; i < NUMRECORDES; i++){
+        //printa os nomes a partir da metade tela
         cputsxy(METADEX, METADEY+i, nomes[i]);
     }
     for(i = 0; i < NUMRECORDES; i++){
+        //printa as pontuacoes a partir da metade tela
         gotoxy(METADEX+10, METADEY+i);
         cprintf("%d", pontuacoes[i]);
     }
 }
 
+//Inicializa o arquivo para o formato que foi convencionado
+//nome;pontuacao;\n
+//inicializa para: null;0;
 void preencherArquivo(FILE *arq){
     char nome[] = "null";
     int pontuacao = 0;
@@ -1591,15 +1600,19 @@ void recordes(){
     FILE *arq;
     arq = fopen("recordes.txt", "r+"); //so teste para verificar se o arquivo existe
     if(arq != NULL && testaIntegridade(arq)){
+        //Le o arquivo e armazena o nome dos jogadores em nomes
+        //e a pontuacao em pontuacoes
         buscaNomePontuacao(nomes, pontuacoes, arq);
-        bubblesort(NUMRECORDES, pontuacoes, nomes);
+        bubblesort(NUMRECORDES, pontuacoes, nomes);//ordena os vetores pela pontuacao em ordem decrescente
         fclose(arq);
-        gravarRecordes(nomes, pontuacoes);
-        if (arq = fopen("recordes.txt", "r")) {
+        gravarRecordes(nomes, pontuacoes);//grava os dados ordenados no arquivo
+        if (arq = fopen("recordes.txt", "r")) {//reabre o arquivo em modo leitura
+            //Le o arquivo e armazena o nome dos jogadores em nomes
+            //e a pontuacao em pontuacoes
             buscaNomePontuacao(nomes, pontuacoes, arq);
             fclose(arq);
             mostraTituloRecordes();
-            mostraTabelaRecordes(nomes, pontuacoes);
+            mostraTabelaRecordes(nomes, pontuacoes);//mostra os nomes e as pontuacoes
         } else {
             printf("ERRO AO CARREGAR O ARQUIVO");
         }
@@ -1607,15 +1620,19 @@ void recordes(){
         if (arq) {// se nao passou no testaintegridade mas conseguiu abrir o arquivo
             fclose(arq);
         }
+        //se o arquivo nao existe ou a integridade esta comprometida
+        //cria-se um novo arquivo
         arq = fopen("recordes.txt", "w+");
         if(arq == NULL){
             printf("ERRO AO CARREGAR O ARQUIVO");
         }else{
-            preencherArquivo(arq);
+            preencherArquivo(arq);//inicializa o arquivo
+            //Le o arquivo e armazena o nome dos jogadores em nomes
+            //e a pontuacao em pontuacoes
             buscaNomePontuacao(nomes, pontuacoes, arq);
             fclose(arq);
             mostraTituloRecordes();
-            mostraTabelaRecordes(nomes, pontuacoes);
+            mostraTabelaRecordes(nomes, pontuacoes);//mostra os nomes e as pontuacoes
         }
     }
 
