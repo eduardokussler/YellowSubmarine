@@ -210,9 +210,6 @@ void bubblesort( int num_recordes, int *pontuacao,char nomes[][MAXSTRINGNOME]);
 void recordes();
 void guarda_pontuacao(SUBMARINO sub);
 void instrucoes();
-
-
-
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
 int colidiu_torpedo_mergulhador (COORD torpedo,COORD obstaculo); 
 int colidiu_sub_inimigo (COORD sub, COORD obstaculo);
