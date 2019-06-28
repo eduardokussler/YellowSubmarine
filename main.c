@@ -1,3 +1,11 @@
+/* 
+ *Trabalho final de Algoritmos e Programacao
+ * Eduardo Eugenio Kussler
+ * Gabriel Couto Domingues
+ */
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <conio2.h>
@@ -21,7 +29,7 @@
 #define COMPRIMENTOMENU 13// 13 linhas para escrever a maior string do menu carregar jogo
 
 
-#define PORCENTAGEMMERGULHADORES 30// porcentagem de spawn de mergulhadores, a porcentagem de submarinos inimigos eh 100-PORCENTAGEMMERGULHADORES
+#define PORCENTAGEMMERGULHADORES 20// porcentagem de spawn de mergulhadores, a porcentagem de submarinos inimigos eh 100-PORCENTAGEMMERGULHADORES
 
 #define TEMPODELOOP 40//tempo em milissegundos entre as atualizacoes na tela durante o jogo
 #define TEMPODELOOPMENU 60//tempo em milissegundos entre as atualizacoes na tela no menu
@@ -201,7 +209,7 @@ void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]);
 void bubblesort( int num_recordes, int *pontuacao,char nomes[][MAXSTRINGNOME]);
 void recordes();
 void guarda_pontuacao(SUBMARINO sub);
-
+void instrucoes();
 
 
 
@@ -466,6 +474,14 @@ void animacao_lados_sem_vidas(SUBMARINO *submarino) {// parte da animacao de mor
     }
 }
 
+void instrucoes() {// comandos do jogo
+    cputsxy(METADEX,METADEY,"Setas: Movem o submarino");
+    cputsxy(METADEX,METADEY+1,"Espaco: Dispara um torpedo"); 
+    cputsxy(METADEX,METADEY+2,"Esc: Pausa o jogo"); 
+    getch();
+}
+
+
 void animacao_sem_vidas(SUBMARINO submarino,OBSTACULO *obstaculos) {// faz uma animacao quando o jogador perde
     apaga_obstaculos(obstaculos);// tira os obstaculos da tela
     while(submarino.posicao.Y<LINHAINTERFACEINFERIOR) {// vai ate a linha antes da moldura
@@ -477,6 +493,10 @@ void animacao_sem_vidas(SUBMARINO submarino,OBSTACULO *obstaculos) {// faz uma a
     pintar_tela();
     imprime_moldura_menu();
     cputsxy(METADEX,METADEY,"GAME OVER");
+    getch();
+    limpa_tela_moldura();
+    cputsxy(METADEX,METADEY,"Pontos: ");
+    cprintf("%d",submarino.pontuacao);
     getch();
 }
 
@@ -1009,10 +1029,10 @@ void testa_colisao_submarino_inimigo(SUBMARINO *submarino, OBSTACULO *obstaculo)
 // testa a colisao entre o submarino e um mergulhador,caso colidam faz as atualizacoes necessarias
 void testa_colisao_submarino_mergulhador(SUBMARINO *submarino, OBSTACULO *obstaculo) {
     if (colidiu_sub_mergulhador(submarino->posicao,obstaculo->posicao) && obstaculo->tipo==MERGULHADOR) {
-        apaga_mergulhador(*obstaculo);
-        obstaculo->tipo = SEMOBSTACULO;//reseta o tipo do obstaculo
         if (submarino->mergulhadores < MERGULHADORESMAXIMOS) {//testa se pode pegar mais um mergulhador
-           submarino->mergulhadores++;
+            apaga_mergulhador(*obstaculo);
+            obstaculo->tipo = SEMOBSTACULO;//reseta o tipo do obstaculo
+            submarino->mergulhadores++;
         }
         // imprimi o sub novamente pois ao apagar o mergulhador pode ter apagado parte do sub
         imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
@@ -1454,6 +1474,8 @@ void novo_jogo() {// comeca um novo jogo
     cputsxy(METADEX,METADEY,"Digite seu nome:");
     gotoxy(METADEX,METADEY+1);
     if (le_nome_jogador(sub.nome)) {// se o usuario nao voltou para o menu
+        limpa_tela_moldura();
+        instrucoes();
         clrscr();
         game_loop(sub,obstaculos, torpedo);// comeca o jogo
     }
