@@ -243,7 +243,7 @@ void imprime_submarino_controla_agua(SUBMARINO submarino);
 void percorre_vetor_obstaculos_menu (OBSTACULO *obstaculos);
 int colisao_menu_submarino(OBSTACULO obstaculo);
 void percorre_vetor_obstaculos(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO *submarino);
-void testa_colisao_submarino_mergulhador(SUBMARINO *submarino, OBSTACULO *obstaculo);
+int testa_colisao_submarino_mergulhador(SUBMARINO *submarino, OBSTACULO *obstaculo);
 void testa_colisao_submarino_inimigo(SUBMARINO *submarino, OBSTACULO *obstaculo);
 void imprime_obstaculo_individual(OBSTACULO obstaculo);
 void testa_colisao_torpedo_individual (TORPEDO *torpedo, OBSTACULO *obstaculo, SUBMARINO *sub);
@@ -1024,15 +1024,19 @@ void testa_colisao_submarino_inimigo(SUBMARINO *submarino, OBSTACULO *obstaculo)
 }
 
 // testa a colisao entre o submarino e um mergulhador,caso colidam faz as atualizacoes necessarias
-void testa_colisao_submarino_mergulhador(SUBMARINO *submarino, OBSTACULO *obstaculo) {
+int testa_colisao_submarino_mergulhador(SUBMARINO *submarino, OBSTACULO *obstaculo) {
+    //retorna 1 se colidiu com o submarino, independente de o submarino ter ou nao espaco disponivel
+    // retorna 0 se nao colidiu
     if (colidiu_sub_mergulhador(submarino->posicao,obstaculo->posicao) && obstaculo->tipo==MERGULHADOR) {
         if (submarino->mergulhadores < MERGULHADORESMAXIMOS) {//testa se pode pegar mais um mergulhador
-            apaga_mergulhador(*obstaculo);
             obstaculo->tipo = SEMOBSTACULO;//reseta o tipo do obstaculo
             submarino->mergulhadores++;
         }
         // imprimi o sub novamente pois ao apagar o mergulhador pode ter apagado parte do sub
         imprime_submarino(submarino->posicao,submarino->orientacao,submarino->cor);
+        return 1;
+    } else {
+        return 0;
     }
 }
 
@@ -1052,8 +1056,9 @@ void percorre_vetor_obstaculos(OBSTACULO *obstaculos, TORPEDO *torpedo,SUBMARINO
             atualiza_obstaculo_individual(&obstaculos[i].posicao,obstaculos[i].orientacao);
             testa_colisao_tela_mergulhador(&obstaculos[i]);
             testa_colisao_torpedo_individual(torpedo, &obstaculos[i], submarino);
-            testa_colisao_submarino_mergulhador(submarino,&obstaculos[i]);
-            imprime_obstaculo_individual(obstaculos[i]);
+            if (!testa_colisao_submarino_mergulhador(submarino,&obstaculos[i])) {
+                imprime_obstaculo_individual(obstaculos[i]);
+            }
         }
     }
 }
