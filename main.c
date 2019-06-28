@@ -193,14 +193,16 @@ typedef struct{// estrutura utilizada para salvar e carregar jogo
 } JOGO;
 
 
-
-void recordes();
+//Prototipos
 void preencherArquivo(FILE *arq);
 void mostraTabelaRecordes(char nomes[NUMRECORDES][MAXSTRINGNOME], int pontuacoes[]);
 void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE *arq);
-void guarda_pontuacao(SUBMARINO sub);
-void bubblesort( int num_recordes, int *pontuacao,char nomes[][MAXSTRINGNOME]);
 void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]);
+void bubblesort( int num_recordes, int *pontuacao,char nomes[][MAXSTRINGNOME]);
+void recordes();
+void guarda_pontuacao(SUBMARINO sub);
+
+
 
 
 int colidiu_torpedo_submarino_inimigo (COORD torpedo,COORD obstaculo);
@@ -1085,6 +1087,7 @@ void imprime_submarino_controla_agua(SUBMARINO submarino) {
     }
 }
 
+// grava os dados dos jogadores(nome e pontuacao) no arquivo
 void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
     int i;
     FILE *arq;
@@ -1100,10 +1103,9 @@ void gravarRecordes(char nomes[][MAXSTRINGNOME], int pontuacao[]){
     }
 
 }
-//ordena os dados do arquivo em ordem decrescente levando em conta a pontuacao
-//usa o metode de bubblesort
+//ordena as informacoes dos jogadores(nome e pontuacao) em ordem decrescente levando em conta a pontuacao
+//usa o metodo de bubblesort
 void bubblesort( int num_recordes, int *pontuacao,char nomes[][MAXSTRINGNOME]){
-    int i;
     int ind, fim, sinal, aux;
     char auxStr[MAXSTRINGNOME];
 
@@ -1217,7 +1219,8 @@ int testaIntegridade(FILE *arq){
     return !erro;
 }
 
-
+// guarda os dados do jogador no arquivo txt caso ele tenha score maior 
+// que algum dos jogadores do arquivo
 void guarda_pontuacao(SUBMARINO sub){
     int pontuacao[NUMRECORDES + 1];//no arquivo de texto, o maximo de registro possivel eh o NUMRECORDES + 1(que eh o novo recorde recem adicionado)
     char nomes[NUMRECORDES + 1][MAXSTRINGNOME];
@@ -1225,7 +1228,7 @@ void guarda_pontuacao(SUBMARINO sub){
     arq = fopen("recordes.txt", "r+");
     if(arq){
         if(testaIntegridade(arq)){//testa se o arquivo de texto esta de acordo com os padroes estabelecidos
-            fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
+            fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);// coloca os dados do jogador no arquivo
             fflush(arq);
             buscaNomePontuacao(nomes, pontuacao, arq);//le o arquivo
             bubblesort(NUMRECORDES+1, pontuacao, nomes);//Ordena os dados do arquivo de acordo com a pontuacao
@@ -1237,7 +1240,7 @@ void guarda_pontuacao(SUBMARINO sub){
             arq = fopen("recordes.txt", "w+");//cria um arquivo novo
             if(arq){
                 preencherArquivo(arq);//preenche o arquivo com dados pre-estabelecidos
-                fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
+                fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);// coloca os dados do jogador no arquivo
                 fflush(arq);
                 buscaNomePontuacao(nomes, pontuacao, arq);//le o arquivo
                 bubblesort(NUMRECORDES+1, pontuacao, nomes);//Ordena os dados do arquivo de acordo com a pontuacao
@@ -1253,7 +1256,7 @@ void guarda_pontuacao(SUBMARINO sub){
         arq = fopen("recordes.txt", "w+");//cria o arquivo
         if(arq){
             preencherArquivo(arq);//preenche o arquivo com dados pre-estabelecidos
-            fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);
+            fprintf(arq, "%s;%d;\n", sub.nome, sub.pontuacao);// coloca os dados do jogador no arquivo
             fflush(arq);
             buscaNomePontuacao(nomes, pontuacao, arq);//le o arquivo
             bubblesort(NUMRECORDES+1, pontuacao, nomes);//Ordena os dados do arquivo de acordo com a pontuacao
@@ -1264,9 +1267,6 @@ void guarda_pontuacao(SUBMARINO sub){
             getch();
         }
     }
-
-
-
 }
 
 void game_loop(SUBMARINO submarino, OBSTACULO *obstaculos, TORPEDO torpedo){// loop de jogo
@@ -1536,6 +1536,7 @@ void imprime_seta(int pos) {// imprime a seta que marca a opcao do menu
     textcolor(CORTEXTO);
 }
 
+// coloca o nome e a pontuacao dos jogadores do arquivo nos arranjos de nomes e de pontuacoes
 void buscaNomePontuacao(char nomes[][MAXSTRINGNOME], int pontuacao[],FILE *arq){
     int i = 0;
     char intermed[MAXLINHA];//variavel temporaria
@@ -1593,7 +1594,7 @@ void mostraTituloRecordes(){// imprime titulo recordes
     textcolor(CORTEXTO);
 }
 
-void recordes(){
+void recordes(){// mostra os recordes do jogo
     int resp;
     char nomes[NUMRECORDES][MAXSTRINGNOME];
     int pontuacoes[NUMRECORDES];
@@ -1603,19 +1604,13 @@ void recordes(){
         //Le o arquivo e armazena o nome dos jogadores em nomes
         //e a pontuacao em pontuacoes
         buscaNomePontuacao(nomes, pontuacoes, arq);
+        // o arquivo eh reordenado pois o teste de integridade apenas testa se os dados estao no formato correto
+        // logo nao testa se a ordem esta correta
         bubblesort(NUMRECORDES, pontuacoes, nomes);//ordena os vetores pela pontuacao em ordem decrescente
         fclose(arq);
         gravarRecordes(nomes, pontuacoes);//grava os dados ordenados no arquivo
-        if (arq = fopen("recordes.txt", "r")) {//reabre o arquivo em modo leitura
-            //Le o arquivo e armazena o nome dos jogadores em nomes
-            //e a pontuacao em pontuacoes
-            buscaNomePontuacao(nomes, pontuacoes, arq);
-            fclose(arq);
-            mostraTituloRecordes();
-            mostraTabelaRecordes(nomes, pontuacoes);//mostra os nomes e as pontuacoes
-        } else {
-            printf("ERRO AO CARREGAR O ARQUIVO");
-        }
+        mostraTituloRecordes();
+        mostraTabelaRecordes(nomes, pontuacoes);//mostra os nomes e as pontuacoes
     }else{
         if (arq) {// se nao passou no testaintegridade mas conseguiu abrir o arquivo
             fclose(arq);
